@@ -1,16 +1,28 @@
 import { useClerk } from "@clerk/clerk-expo";
-import { ThemedButton } from "./ThemedButton";
+import { Button } from "@/components/ui/Button";
+import { ReactNode } from "react";
 
-export const SignOutButton = () => {
+export type SignOutButtonProps = {
+  children?: ReactNode;
+  variant?: "primary" | "secondary" | "tertiary" | "outline" | "ghost" | "danger" | "danger-soft";
+  style?: any;
+  className?: string;
+};
+
+export const SignOutButton = ({ children, variant = "primary", style, className }: SignOutButtonProps) => {
   const { signOut } = useClerk();
 
   const handleSignOut = async () => {
     try {
       await signOut();
     } catch (err) {
-      console.error("Sign out error:", JSON.stringify(err, null, 2)); // TODO add error message handling and disabled state (might need to pass down loading state)
+      console.error("Sign out error:", JSON.stringify(err, null, 2));
     }
   };
 
-  return <ThemedButton onPress={handleSignOut}>Sign out</ThemedButton>;
+  return (
+    <Button variant={variant} onPress={handleSignOut} style={style} className={className}>
+      {children || "Sign out"}
+    </Button>
+  );
 };

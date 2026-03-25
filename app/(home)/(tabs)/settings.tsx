@@ -1,21 +1,79 @@
+import React, { useState } from "react";
+import { SignOutButton } from "@/components/SignOutButton";
+import { Text } from "@/components/ui/Text";
+import { View } from "@/components/ui/View";
 import { formatDate } from "@/utils/formatting";
 import { useUser } from "@clerk/clerk-expo";
 import { Link } from "expo-router";
-import { Image, StyleSheet, TouchableOpacity } from "react-native";
-import { SignOutButton } from "../../../components/SignOutButton";
+import { ScrollView, TouchableOpacity } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
 
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { ThemedButton } from "@/components/ThemedButton";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { IconSymbol } from "@/components/ui/IconSymbol";
+import { Button } from "@/components/ui/Button";
+import { Loading } from "@/components/ui/Loading";
+import { User } from "@/components/User";
+import { T, useLocale, useSetLocale, Var } from "gt-react-native";
+import { Select } from "heroui-native";
+import {
+  AtSign,
+  ChevronRight,
+  FileText,
+  Languages,
+  Lock,
+  LogOut,
+  Shield,
+  Trash2,
+  UserRound,
+} from "lucide-react-native";
+
+const SettingsButton = React.forwardRef(({ icon: Icon, title, destructive, hideBorder, rightElement, ...props }: any, ref) => {
+  return (
+    <TouchableOpacity
+      ref={ref as any}
+      activeOpacity={0.7}
+      className={`flex-row items-center justify-between py-5 px-6 bg-transparent ${hideBorder ? "" : "border-b border-foreground/5"}`}
+      {...props}
+    >
+      <View className="flex-row items-center gap-4 bg-transparent">
+        <View className="w-8 items-center bg-transparent">
+          <Icon
+            size={22}
+            color={destructive ? "#ef4444" : "#666"}
+          />
+        </View>
+        <T>
+          <Text
+            className={`text-base font-semibold ${destructive ? "text-danger" : "text-foreground"}`}
+          >
+            <Var>{title}</Var>
+          </Text>
+        </T>
+      </View>
+      <View className="flex-row items-center gap-2 bg-transparent">
+        {rightElement}
+        <ChevronRight size={18} color="#ccc" />
+      </View>
+    </TouchableOpacity>
+  );
+});
 
 export default function SettingsScreen() {
   const { user, isLoaded } = useUser();
   const [isUpdating, setIsUpdating] = useState(false);
+  const insets = useSafeAreaInsets();
+  const locale = useLocale();
+  const setLocale = useSetLocale();
+
+  const locales = [
+    { label: "English", value: "en" },
+    { label: "Español", value: "es" },
+    { label: "Français", value: "fr" },
+    { label: "日本語", value: "ja" },
+  ];
+
+  const currentLanguageLabel = locales.find((l) => l.value === locale)?.label || "English";
+  const currentLocaleOption = locales.find((l) => l.value === locale) || locales[0];
 
   const pickImage = async () => {
     if (!isLoaded || !user) return;
@@ -23,24 +81,18 @@ export default function SettingsScreen() {
     try {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") return;
 
-      if (status !== "granted") {
-        // TODO: Add an error message to the user to tell them that gallery access is required
-        return;
-      }
-
-      const ImagePickerresult = await ImagePicker.launchImageLibraryAsync({
+      const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
       });
 
-      if (!ImagePickerresult.canceled && ImagePickerresult.assets[0]) {
+      if (!result.canceled && result.assets[0]) {
         setIsUpdating(true);
-
-        const asset = ImagePickerresult.assets[0];
-
+        const asset = result.assets[0];
         const fileObject = {
           uri: asset.uri,
           name: asset.fileName || "profile-image.jpg",
@@ -52,247 +104,188 @@ export default function SettingsScreen() {
         });
 
         await user.reload();
-
-        console.log("Profile image updated successfully");
-        // TODO: Add a success message to the user
       }
     } catch (error) {
       console.error("Error updating profile image:", error);
-      // TODO: Add an error message to the user
     } finally {
       setIsUpdating(false);
     }
   };
 
-  const handleAvatarPress = () => {
-    if (!isLoaded || !user) return;
-    pickImage();
-  };
-
   if (!isLoaded || !user) {
-    return null; // Or a loading spinner
+    return <Loading fullScreen />;
   }
 
-  const primaryEmail = user.primaryEmailAddress?.emailAddress;
-  const allEmails = user.emailAddresses || [];
-
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#197ea3", dark: "#0A7EA4" }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#90e0ef"
-          name="gearshape"
-          style={styles.headerImage}
-        />
-      }
-    >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Settings</ThemedText>
-      </ThemedView>
+    <View className="flex-1 bg-background">
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{
+          paddingBottom: 80,
+          paddingTop: insets.top + 20,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="px-6 mb-10">
+          <T>
+            <Text className="text-4xl font-extrabold tracking-tight text-foreground leading-[48px]">
+              Settings
+            </Text>
+          </T>
+        </View>
 
-      <ThemedView style={styles.settingsContainer}>
-        <ThemedView style={styles.section}>
-          <ThemedView style={styles.userInfoContainer}>
+        <View className="px-6 mb-10">
+          <View className="bg-surface rounded-[40px] p-8 border border-foreground/5 items-center">
             <TouchableOpacity
-              onPress={handleAvatarPress}
+              onPress={pickImage}
               disabled={isUpdating}
-              activeOpacity={0.7}
+              className="mb-6"
             >
-              <Image
-                source={user?.imageUrl ? { uri: user.imageUrl } : undefined}
-                style={[styles.avatar, isUpdating && styles.avatarUpdating]}
+              <User
+                imageUrl={user.imageUrl || undefined}
+                username={undefined}
+                avatarSize={100}
+                variant="ghost"
               />
             </TouchableOpacity>
-            <ThemedView style={styles.userNameContainer}>
-              {user.firstName || user.lastName ? (
-                <ThemedText style={styles.userName}>
-                  {[user.firstName, user.lastName].filter(Boolean).join(" ")}
-                </ThemedText>
-              ) : null}
-              {user.username && (
-                <ThemedText style={styles.username}>
-                  @{user.username}
-                </ThemedText>
-              )}
-              {primaryEmail && (
-                <ThemedText style={styles.email}>{primaryEmail}</ThemedText>
-              )}
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
 
-        {/* Account Information */}
-        <ThemedView style={styles.section}>
-          {allEmails.length > 0 && (
-            <ThemedView style={styles.infoRow}>
-              <ThemedText style={styles.infoLabel}>Email Addresses</ThemedText>
-              <ThemedView style={styles.infoValueContainer}>
-                {allEmails.map((email, index) => (
-                  <ThemedView key={email.id || index} style={styles.emailItem}>
-                    <ThemedText style={styles.infoValue}>
-                      {email.emailAddress}
-                    </ThemedText>
-                    <ThemedText
-                      style={[
-                        styles.verificationBadge,
-                        email.verification?.status === "verified"
-                          ? styles.verified
-                          : styles.unverified,
-                      ]}
-                    >
-                      {email.verification?.status === "verified"
-                        ? "✓ Verified"
-                        : "Unverified"}
-                    </ThemedText>
-                  </ThemedView>
-                ))}
-              </ThemedView>
-            </ThemedView>
-          )}
+            <Text className="text-2xl font-bold text-foreground">
+              <Var>{user.username || user.firstName || "User"}</Var>
+            </Text>
+            <Text className="text-foreground opacity-40 text-base mt-1">
+              <Var>{user.primaryEmailAddress?.emailAddress}</Var>
+            </Text>
 
-          <ThemedView style={styles.infoRow}>
-            <ThemedText style={styles.infoLabel}>Account Created</ThemedText>
-            <ThemedText style={styles.infoValue}>
-              {formatDate(user.createdAt)}
-            </ThemedText>
-          </ThemedView>
-        </ThemedView>
+            <View className="bg-foreground/5 h-px w-full my-8" />
 
-        <ThemedView style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            Actions
-          </ThemedText>
-          <ThemedView style={styles.buttonsContainer}>
-            <Link href="/(home)/change-password" asChild>
-              <ThemedButton>Change Password</ThemedButton>
-            </Link>
-            <Link href="/(home)/change-email" asChild>
-              <ThemedButton>Change Email</ThemedButton>
-            </Link>
+            <View className="w-full flex-row justify-around bg-transparent">
+              <View className="items-center bg-transparent">
+                <T>
+                  <Text className="text-[10px] font-bold opacity-30 uppercase tracking-[2px]">
+                    Joined
+                  </Text>
+                </T>
+                <Text className="text-base font-bold mt-1 text-foreground">
+                  <Var>{formatDate(user.createdAt).split(",")[0]}</Var>
+                </Text>
+              </View>
+              <View className="bg-foreground/10 w-[1px] h-10" />
+              <View className="items-center bg-transparent">
+                <T>
+                  <Text className="text-[10px] font-bold opacity-30 uppercase tracking-[2px]">
+                    Status
+                  </Text>
+                </T>
+                <T>
+                  <Text className="text-base font-bold mt-1 text-success">
+                    Active
+                  </Text>
+                </T>
+              </View>
+            </View>
+          </View>
+        </View>
 
-            <Link href="/(home)/change-username" asChild>
-              <ThemedButton>Change Username</ThemedButton>
-            </Link>
+        <View className="gap-12">
+          {/* General Preferences */}
+          <View>
+            <T>
+              <Text className="text-[11px] font-bold opacity-30 uppercase tracking-[3px] ml-12 mb-4">
+                General
+              </Text>
+            </T>
+            <View className="bg-surface rounded-[32px] overflow-hidden border border-foreground/5 mx-6">
+              <Select
+                value={currentLocaleOption}
+                onValueChange={(option: any) => setLocale(option.value)}
+                presentation="bottom-sheet"
+              >
+                <Select.Trigger variant="unstyled">
+                  <SettingsButton
+                    title="Language"
+                    icon={Languages}
+                    rightElement={
+                      <Text className="text-foreground opacity-40 font-medium">
+                        <Var>{currentLanguageLabel}</Var>
+                      </Text>
+                    }
+                    hideBorder
+                  />
+                </Select.Trigger>
+                <Select.Portal>
+                  <Select.Overlay />
+                  <Select.Content presentation="bottom-sheet" snapPoints={["40%"]}>
+                    <Select.ListLabel>
+                      <T>Select Language</T>
+                    </Select.ListLabel>
+                    {locales.map((l) => (
+                      <Select.Item key={l.value} value={l.value} label={l.label} />
+                    ))}
+                  </Select.Content>
+                </Select.Portal>
+              </Select>
+            </View>
+          </View>
 
-            <Link href="/(home)/delete-account" asChild>
-              <ThemedButton>Delete Account</ThemedButton>
-            </Link>
-            <SignOutButton />
-          </ThemedView>
-        </ThemedView>
-      </ThemedView>
-    </ParallaxScrollView>
+          {/* Account Actions */}
+          <View>
+            <T>
+              <Text className="text-[11px] font-bold opacity-30 uppercase tracking-[3px] ml-12 mb-4">
+                Account
+              </Text>
+            </T>
+            <View className="bg-surface rounded-[32px] overflow-hidden border border-foreground/5 mx-6">
+              <Link href="/(home)/change-password" asChild>
+                <SettingsButton title="Change Password" icon={Lock} />
+              </Link>
+              <Link href="/(home)/change-email" asChild>
+                <SettingsButton title="Change Email" icon={AtSign} />
+              </Link>
+              <Link href="/(home)/change-username" asChild>
+                <SettingsButton title="Change Username" icon={UserRound} />
+              </Link>
+              <Link href="/(home)/delete-account" asChild>
+                <SettingsButton
+                  title="Delete Account"
+                  icon={Trash2}
+                  destructive
+                  hideBorder
+                />
+              </Link>
+            </View>
+          </View>
+
+          {/* Legal Section */}
+          <View>
+            <T>
+              <Text className="text-[11px] font-bold opacity-30 uppercase tracking-[3px] ml-12 mb-4">
+                Legal
+              </Text>
+            </T>
+            <View className="bg-surface rounded-[32px] overflow-hidden border border-foreground/5 mx-6">
+              <Link href="/(home)/terms-and-conditions" asChild>
+                <SettingsButton title="Terms of Use" icon={FileText} />
+              </Link>
+              <Link href="/(home)/privacy-policy" asChild>
+                <SettingsButton title="Privacy Policy" icon={Shield} hideBorder />
+              </Link>
+            </View>
+          </View>
+
+          {/* Session */}
+          <View className="px-6">
+            <SignOutButton
+              variant="primary"
+              className="h-16 rounded-[24px] flex-row items-center justify-center gap-3 shadow-md shadow-accent/20"
+            >
+              <LogOut size={20} color="white" />
+              <T>
+                <Text className="text-base font-bold text-white">Log Out</Text>
+              </T>
+            </SignOutButton>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
-
-// Replace the styles object (lines 244-344) with:
-const styles = StyleSheet.create({
-  headerImage: {
-    bottom: -100,
-    left: -90,
-    position: "absolute",
-  },
-  titleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 8,
-  },
-  settingsContainer: {
-    flexDirection: "column",
-    gap: 18,
-  },
-  section: {
-    gap: 12,
-  },
-  sectionTitle: {
-    marginBottom: 8,
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  userInfoContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 20,
-    paddingVertical: 8,
-  },
-  userNameContainer: {
-    flex: 1,
-    gap: 4,
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  username: {
-    fontSize: 14,
-    opacity: 0.7,
-  },
-  email: {
-    fontSize: 14,
-    opacity: 0.8,
-  },
-  avatar: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-  },
-  avatarUpdating: {
-    opacity: 0.5,
-  },
-  infoRow: {
-    flexDirection: "column",
-    gap: 2,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(128, 128, 128, 0.2)",
-  },
-  infoLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    opacity: 0.7,
-    marginBottom: 4,
-  },
-  infoValue: {
-    fontSize: 16,
-  },
-  infoValueContainer: {
-    gap: 8,
-  },
-  emailItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    flexWrap: "wrap",
-  },
-  phoneItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    flexWrap: "wrap",
-  },
-  verificationBadge: {
-    fontSize: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 1,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  verified: {
-    backgroundColor: "rgba(34, 197, 94, 0.2)",
-    color: "#22c55e",
-  },
-  unverified: {
-    backgroundColor: "rgba(239, 68, 68, 0.2)",
-    color: "#ef4444",
-  },
-  buttonsContainer: {
-    gap: 20,
-  },
-});
-
-// TODO: Add a way to delete the account
-// TODO: Add a way to change username
-// TODO: Manage SSO connections and remove them

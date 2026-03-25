@@ -1,5 +1,6 @@
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet, Image } from "react-native";
+import { TouchableOpacity, StyleSheet, Image } from "react-native";
+import { Text } from "@/components/ui/Text";
 import { useSSO } from "@clerk/clerk-expo";
 import * as WebBrowser from "expo-web-browser";
 

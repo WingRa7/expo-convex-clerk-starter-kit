@@ -1,14 +1,13 @@
 import { useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
-import { useFormik } from "formik";
+import { useFormik, FormikProvider } from "formik";
 import { useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
 import * as yup from "yup";
 
-import { ThemedButton } from "@/components/ThemedButton";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { useThemeColor } from "@/hooks/use-theme-color";
+import { Button } from "@/components/ui/Button";
+import { Text } from "@/components/ui/Text";
+import { View } from "@/components/ui/View";
+import { FormikField } from "@/components/ui/FormikField";
 
 import { usePasswordVerification } from "@/hooks/usePasswordVerification";
 
@@ -36,14 +35,6 @@ export default function ChangeEmail() {
     clearError,
   } = usePasswordVerification();
 
-  const backgroundColor = useThemeColor({}, "background");
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({ light: "#E0E0E0", dark: "#333" }, "text");
-  const placeholderTextColor = useThemeColor(
-    { light: "#999", dark: "#666" },
-    "icon"
-  );
-
   const formik = useFormik({
     initialValues,
     validationSchema,
@@ -54,10 +45,7 @@ export default function ChangeEmail() {
     },
   });
 
-  const handleChangeEmail = async (values: {
-    newEmail: string;
-    currentPassword: string;
-  }) => {
+  const handleChangeEmail = async (values: typeof initialValues) => {
     if (!isLoaded || !user) {
       return;
     }
@@ -66,7 +54,6 @@ export default function ChangeEmail() {
     clearError();
 
     const isPasswordValid = await verify(values.currentPassword);
-    console.log("Password valid:", isPasswordValid); //TODO remove after testing
 
     if (!isPasswordValid) {
       return;
@@ -76,181 +63,72 @@ export default function ChangeEmail() {
       await user?.update({ primaryEmailAddressId: values.newEmail });
       await user.reload();
       router.back();
-      // TODO: Add a success message to the user, toast
     } catch (err: any) {
-      console.error("Change username error:", JSON.stringify(err, null, 2));
+      console.error("Change email error:", JSON.stringify(err, null, 2));
       const errorMessage =
         err?.errors?.[0]?.longMessage ||
         err?.message ||
-        "Failed to change username";
+        "Failed to change email";
       setClerkError(errorMessage);
     }
   };
 
-  const displayError = clerkError || verificationError; // TODO modify other error displays to follow this logic
+  const displayError = clerkError || verificationError;
   const isLoading = formik.isSubmitting || isVerifying;
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.content}>
-        <ThemedText type="title" style={styles.title}>
+    <View className="flex-1 justify-center items-center bg-background p-5">
+      <View className="w-full max-w-[400px]">
+        <Text type="title" className="mb-8 text-center">
           Change Email
-        </ThemedText>
+        </Text>
 
-        <View style={styles.formContainer}>
-          <View style={styles.fieldsContainer}>
-            <ThemedText style={styles.label}>New Email</ThemedText>
-            <TextInput
-              style={[
-                styles.input,
-                { color: textColor, borderColor, backgroundColor },
-                formik.touched.newEmail &&
-                  formik.errors.newEmail &&
-                  styles.inputError,
-              ]}
-              value={formik.values.newEmail}
-              onChangeText={formik.handleChange("newEmail")}
-              onBlur={formik.handleBlur("newEmail")}
-              placeholder="Enter new email"
-              placeholderTextColor={placeholderTextColor}
-              secureTextEntry
-              autoComplete="password-new"
-              editable={!isLoading}
-            />
-            <ThemedText
-              style={[
-                styles.validationErrorText,
-                !(formik.touched.newEmail && formik.errors.newEmail) &&
-                  styles.hiddenError,
-              ]}
-            >
-              {formik.errors.newEmail || ""}
-            </ThemedText>
+        <FormikProvider value={formik}>
+          <View className="gap-4">
+            <View className="gap-1">
+              <Text className="text-base mb-2">New Email</Text>
+              <FormikField
+                name="newEmail"
+                placeholder="Enter new email"
+                keyboardType="email-address"
+                autoComplete="email"
+                editable={!isLoading}
+              />
 
-            <ThemedText style={styles.label}>Password</ThemedText>
-            <TextInput
-              style={[
-                styles.input,
-                { color: textColor, borderColor, backgroundColor },
-                formik.touched.currentPassword &&
-                  formik.errors.currentPassword &&
-                  styles.inputError,
-              ]}
-              value={formik.values.currentPassword}
-              onChangeText={formik.handleChange("currentPassword")}
-              onBlur={formik.handleBlur("currentPassword")}
-              placeholder="Enter password"
-              placeholderTextColor={placeholderTextColor}
-              secureTextEntry
-              autoComplete="password"
-              editable={!isLoading}
-            />
+              <Text className="text-base mt-2 mb-2">Password</Text>
+              <FormikField
+                name="currentPassword"
+                placeholder="Enter password"
+                secureTextEntry
+                autoComplete="password"
+                editable={!isLoading}
+              />
+            </View>
 
-            <ThemedText
-              style={[
-                styles.validationErrorText,
-                !(
-                  formik.touched.currentPassword &&
-                  formik.errors.currentPassword
-                ) && styles.hiddenError,
-              ]}
-            >
-              {formik.errors.currentPassword || ""}
-            </ThemedText>
+            {displayError ? (
+              <Text className="text-danger text-sm text-center leading-5 -mt-2">
+                {displayError}
+              </Text>
+            ) : null}
+
+            <View className="gap-3 mt-4">
+              <Button
+                onPress={() => formik.handleSubmit()}
+                disabled={isLoading}
+              >
+                {isLoading ? "Changing..." : "Change Email"}
+              </Button>
+
+              <Button
+                onPress={() => router.back()}
+                variant="ghost"
+              >
+                Cancel
+              </Button>
+            </View>
           </View>
-
-          <View style={styles.clerkErrorContainer}>
-            <ThemedText
-              style={[
-                styles.clerkErrorText,
-                !displayError && styles.hiddenError,
-              ]}
-            >
-              {displayError || ""}
-            </ThemedText>
-          </View>
-
-          <View style={styles.buttonsContainer}>
-            <ThemedButton
-              onPress={() => formik.handleSubmit()}
-              disabled={isLoading}
-            >
-              {isLoading ? "Changing..." : "Change Email"}
-            </ThemedButton>
-
-            <ThemedButton
-              onPress={() => router.back()}
-              style={styles.cancelButton}
-              lightBackgroundColor="#f0f0f0"
-              darkBackgroundColor="#333"
-            >
-              Cancel
-            </ThemedButton>
-          </View>
-        </View>
+        </FormikProvider>
       </View>
-    </ThemedView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  content: {
-    width: "100%",
-    maxWidth: 400,
-  },
-  title: {
-    marginBottom: 32,
-    textAlign: "center",
-  },
-  formContainer: {
-    gap: 16,
-  },
-  fieldsContainer: {
-    gap: 4,
-  },
-  buttonsContainer: {
-    gap: 12,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    minHeight: 50,
-  },
-  inputError: {
-    borderColor: "#ef4444",
-  },
-  validationErrorText: {
-    marginLeft: 10,
-    color: "#ef4444",
-    fontSize: 12,
-  },
-  hiddenError: {
-    opacity: 0,
-  },
-  clerkErrorContainer: {
-    minHeight: 20,
-    marginTop: -10,
-    marginBottom: -10,
-  },
-  clerkErrorText: {
-    color: "#ef4444",
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  cancelButton: {
-    marginTop: 8,
-  },
-});

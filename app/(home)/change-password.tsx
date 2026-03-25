@@ -1,14 +1,13 @@
 import { useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
-import { useFormik } from "formik";
+import { useFormik, FormikProvider } from "formik";
 import { useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
 import * as yup from "yup";
 
-import { ThemedButton } from "@/components/ThemedButton";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { useThemeColor } from "@/hooks/use-theme-color";
+import { Button } from "@/components/ui/Button";
+import { Text } from "@/components/ui/Text";
+import { View } from "@/components/ui/View";
+import { FormikField } from "@/components/ui/FormikField";
 
 const initialValues = {
   currentPassword: "",
@@ -34,14 +33,6 @@ export default function ChangePassword() {
   const [clerkError, setClerkError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const backgroundColor = useThemeColor({}, "background");
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({ light: "#E0E0E0", dark: "#333" }, "text");
-  const placeholderTextColor = useThemeColor(
-    { light: "#999", dark: "#666" },
-    "icon"
-  );
-
   const formik = useFormik({
     initialValues,
     validationSchema,
@@ -52,11 +43,7 @@ export default function ChangePassword() {
     },
   });
 
-  const handleChangePassword = async (values: {
-    currentPassword: string;
-    newPassword: string;
-    confirmPassword: string;
-  }) => {
+  const handleChangePassword = async (values: typeof initialValues) => {
     if (!isLoaded || !user) {
       setClerkError("User not loaded. Please try again.");
       return;
@@ -67,13 +54,10 @@ export default function ChangePassword() {
 
     try {
       await user?.updatePassword({
-        // TODO update password logic, update credentials?
         currentPassword: values.currentPassword,
         newPassword: values.newPassword,
       });
 
-      // Success - go back
-      // TODO: Add a success message to the user
       router.back();
     } catch (err: any) {
       console.error("Change password error:", JSON.stringify(err, null, 2));
@@ -88,193 +72,67 @@ export default function ChangePassword() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.content}>
-        <ThemedText type="title" style={styles.title}>
+    <View className="flex-1 justify-center items-center bg-background p-5">
+      <View className="w-full max-w-[400px]">
+        <Text type="title" className="mb-8 text-center">
           Change Password
-        </ThemedText>
+        </Text>
 
-        <View style={styles.formContainer}>
-          <View style={styles.fieldsContainer}>
-            <ThemedText style={styles.label}>Current Password</ThemedText>
-            <TextInput
-              style={[
-                styles.input,
-                { color: textColor, borderColor, backgroundColor },
-                formik.touched.currentPassword &&
-                  formik.errors.currentPassword &&
-                  styles.inputError,
-              ]}
-              value={formik.values.currentPassword}
-              onChangeText={formik.handleChange("currentPassword")}
-              onBlur={formik.handleBlur("currentPassword")}
-              placeholder="Enter current password"
-              placeholderTextColor={placeholderTextColor}
-              secureTextEntry
-              autoComplete="password"
-              editable={!isLoading}
-            />
+        <FormikProvider value={formik}>
+          <View className="gap-4">
+            <View className="gap-1">
+              <Text className="text-base mb-2">Current Password</Text>
+              <FormikField
+                name="currentPassword"
+                placeholder="Enter current password"
+                secureTextEntry
+                autoComplete="password"
+                editable={!isLoading}
+              />
 
-            <ThemedText
-              style={[
-                styles.validationErrorText,
-                !(
-                  formik.touched.currentPassword &&
-                  formik.errors.currentPassword
-                ) && styles.hiddenError,
-              ]}
-            >
-              {formik.errors.currentPassword || ""}
-            </ThemedText>
+              <Text className="text-base mt-2 mb-2">New Password</Text>
+              <FormikField
+                name="newPassword"
+                placeholder="Enter new password"
+                secureTextEntry
+                autoComplete="password-new"
+                editable={!isLoading}
+              />
 
-            <ThemedText style={styles.label}>New Password</ThemedText>
-            <TextInput
-              style={[
-                styles.input,
-                { color: textColor, borderColor, backgroundColor },
-                formik.touched.newPassword &&
-                  formik.errors.newPassword &&
-                  styles.inputError,
-              ]}
-              value={formik.values.newPassword}
-              onChangeText={formik.handleChange("newPassword")}
-              onBlur={formik.handleBlur("newPassword")}
-              placeholder="Enter new password"
-              placeholderTextColor={placeholderTextColor}
-              secureTextEntry
-              autoComplete="password-new"
-              editable={!isLoading}
-            />
-            <ThemedText
-              style={[
-                styles.validationErrorText,
-                !(formik.touched.newPassword && formik.errors.newPassword) &&
-                  styles.hiddenError,
-              ]}
-            >
-              {formik.errors.newPassword || ""}
-            </ThemedText>
+              <Text className="text-base mt-2 mb-2">Confirm New Password</Text>
+              <FormikField
+                name="confirmPassword"
+                placeholder="Confirm new password"
+                secureTextEntry
+                autoComplete="password-new"
+                editable={!isLoading}
+              />
+            </View>
 
-            <ThemedText style={styles.label}>Confirm New Password</ThemedText>
-            <TextInput
-              style={[
-                styles.input,
-                { color: textColor, borderColor, backgroundColor },
-                formik.touched.confirmPassword &&
-                  formik.errors.confirmPassword &&
-                  styles.inputError,
-              ]}
-              value={formik.values.confirmPassword}
-              onChangeText={formik.handleChange("confirmPassword")}
-              onBlur={formik.handleBlur("confirmPassword")}
-              placeholder="Confirm new password"
-              placeholderTextColor={placeholderTextColor}
-              secureTextEntry
-              autoComplete="password-new"
-              editable={!isLoading}
-            />
-            <ThemedText
-              style={[
-                styles.validationErrorText,
-                !(
-                  formik.touched.confirmPassword &&
-                  formik.errors.confirmPassword
-                ) && styles.hiddenError,
-              ]}
-            >
-              {formik.errors.confirmPassword || ""}
-            </ThemedText>
+            {clerkError ? (
+              <Text className="text-danger text-sm text-center leading-5 -mt-2">
+                {clerkError}
+              </Text>
+            ) : null}
+
+            <View className="gap-3 mt-4">
+              <Button
+                onPress={() => formik.handleSubmit()}
+                disabled={isLoading}
+              >
+                {isLoading ? "Changing..." : "Change Password"}
+              </Button>
+
+              <Button
+                onPress={() => router.back()}
+                variant="ghost"
+              >
+                Cancel
+              </Button>
+            </View>
           </View>
-
-          <View style={styles.clerkErrorContainer}>
-            <ThemedText
-              style={[styles.clerkErrorText, !clerkError && styles.hiddenError]}
-            >
-              {clerkError || ""}
-            </ThemedText>
-          </View>
-
-          <View style={styles.buttonsContainer}>
-            <ThemedButton
-              onPress={() => formik.handleSubmit()}
-              disabled={isLoading}
-            >
-              {isLoading ? "Changing..." : "Change Password"}
-            </ThemedButton>
-
-            <ThemedButton
-              onPress={() => router.back()}
-              style={styles.cancelButton}
-              lightBackgroundColor="#f0f0f0"
-              darkBackgroundColor="#333"
-            >
-              Cancel
-            </ThemedButton>
-          </View>
-        </View>
+        </FormikProvider>
       </View>
-    </ThemedView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  content: {
-    width: "100%",
-    maxWidth: 400,
-  },
-  title: {
-    marginBottom: 32,
-    textAlign: "center",
-  },
-  formContainer: {
-    gap: 16,
-  },
-  fieldsContainer: {
-    gap: 4,
-  },
-  buttonsContainer: {
-    gap: 12,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    minHeight: 50,
-  },
-  inputError: {
-    borderColor: "#ef4444",
-  },
-  validationErrorText: {
-    marginLeft: 10,
-    color: "#ef4444",
-    fontSize: 12,
-  },
-  hiddenError: {
-    opacity: 0,
-  },
-  clerkErrorContainer: {
-    minHeight: 20,
-    marginTop: -10,
-    marginBottom: -10,
-  },
-  clerkErrorText: {
-    color: "#ef4444",
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  cancelButton: {
-    marginTop: 8,
-  },
-});

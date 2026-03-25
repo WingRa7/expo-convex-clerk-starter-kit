@@ -1,21 +1,20 @@
 import { Link } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
 
 import { useSignIn } from "@clerk/clerk-expo";
 import { useLocalCredentials } from "@clerk/clerk-expo/local-credentials";
 
-import { useFormik } from "formik";
+import { useFormik, FormikProvider } from "formik";
 import * as yup from "yup";
 
 import SignInWithGoogle from "@/components/SignInWithGoogle";
 
 import { IconSymbol } from "@/components/ui/IconSymbol";
 
-import { ThemedButton } from "@/components/ThemedButton";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { useThemeColor } from "@/hooks/use-theme-color";
+import { Button } from "@/components/ui/Button";
+import { Text } from "@/components/ui/Text";
+import { View } from "@/components/ui/View";
+import { FormikField } from "@/components/ui/FormikField";
 
 const initialValues = {
   email: "",
@@ -39,16 +38,6 @@ export default function SignInPage() {
 
   const [clerkError, setClerkError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  const backgroundColor = useThemeColor({}, "background");
-  const textColor = useThemeColor({}, "text");
-  const buttonTextColor = useThemeColor({}, "buttonText");
-  const borderColor = useThemeColor({ light: "#E0E0E0", dark: "#333" }, "text");
-  const placeholderColor = useThemeColor(
-    { light: "#999", dark: "#666" },
-
-    "icon"
-  );
 
   const formik = useFormik({
     initialValues,
@@ -91,20 +80,49 @@ export default function SignInPage() {
         await setActive({ session: signInAttempt.createdSessionId });
         console.log("✅ Session activated (email)");
       } else {
-        setClerkError("Email Sign in could not be completed."); // make user friendly in prod
+        setClerkError("Email Sign in could not be completed.");
         console.error(
           "Email Sign in status not complete:",
-          JSON.stringify(signInAttempt, null, 2)
+          JSON.stringify(signInAttempt, null, 2),
         );
       }
     } catch (err: any) {
-      const errorMessage =
-        err?.errors?.[0]?.longMessage ||
-        err?.errors?.[0]?.message ||
-        err?.message ||
-        "An error occurred during email sign in.";
+      if (err?.errors?.some((e: any) => e.code === "session_exists")) {
+        console.log("✅ Session already exists (sign-in)");
+        return;
+      }
 
-      setClerkError(errorMessage);
+      if (err?.errors) {
+        const fieldErrors: Record<string, string> = {};
+        const generalErrors: string[] = [];
+
+        err.errors.forEach((e: any) => {
+          let fieldName = e.meta?.paramName;
+
+          if (fieldName === "identifier" || fieldName === "email_address")
+            fieldName = "email";
+
+          if (fieldName && Object.keys(initialValues).includes(fieldName)) {
+            fieldErrors[fieldName] = e.longMessage || e.message;
+          } else {
+            generalErrors.push(e.longMessage || e.message);
+          }
+        });
+
+        if (Object.keys(fieldErrors).length > 0) {
+          formik.setErrors(fieldErrors);
+        }
+
+        if (generalErrors.length > 0) {
+          setClerkError(generalErrors.join("\n"));
+        } else {
+          setClerkError("");
+        }
+      } else {
+        setClerkError(
+          err?.message || "An error occurred during email sign in.",
+        );
+      }
 
       console.error("Email Sign-in error:", JSON.stringify(err, null, 2));
     } finally {
@@ -129,12 +147,12 @@ export default function SignInPage() {
 
       if (signInAttempt.status === "complete") {
         await setActive({ session: signInAttempt.createdSessionId });
-        console.log("✅ Session activated");
+        console.log("✅ Session activated (biometric)");
       } else {
         setClerkError("Sign in could not be completed. Please try again");
         console.error(
           "Biometric sign in status not complete:",
-          JSON.stringify(signInAttempt, null, 2)
+          JSON.stringify(signInAttempt, null, 2),
         );
       }
     } catch (authError: any) {
@@ -149,243 +167,114 @@ export default function SignInPage() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.content}>
-        <ThemedText type="title" style={styles.title}>
+    <View className="flex-1 justify-center items-center bg-background p-5">
+      <View className="w-full max-w-[400px]">
+        <Text type="title" className="mb-8 text-center">
           Sign in
-        </ThemedText>
+        </Text>
 
-        <View style={styles.formContainer}>
-          <View style={styles.fieldsContainer}>
-            <TextInput
-              style={[
-                styles.input,
-                { color: textColor, borderColor, backgroundColor },
-                formik.touched.email &&
-                  formik.errors.email &&
-                  styles.inputError,
-              ]}
-              autoCapitalize="none"
-              placeholder="Enter email"
-              placeholderTextColor={placeholderColor}
-              value={formik.values.email}
-              onChangeText={formik.handleChange("email")}
-              onBlur={formik.handleBlur("email")}
-              keyboardType="email-address"
-              autoComplete="email"
-              editable={!isLoading}
-            />
+        <FormikProvider value={formik}>
+          <View className="gap-4">
+            <View className="gap-1">
+              <FormikField
+                name="email"
+                placeholder="Enter email"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoComplete="email"
+                editable={!isLoading}
+              />
 
-            <ThemedText
-              style={[
-                styles.validationErrorText,
-                !(formik.touched.email && formik.errors.email) &&
-                  styles.hiddenError,
-              ]}
-            >
-              {formik.errors.email || ""}
-            </ThemedText>
+              <FormikField
+                name="password"
+                placeholder="Enter password"
+                secureTextEntry={true}
+                autoComplete="password"
+                editable={!isLoading}
+              />
+            </View>
 
-            <TextInput
-              style={[
-                styles.input,
-                { color: textColor, borderColor, backgroundColor },
-                formik.touched.password &&
-                  formik.errors.password &&
-                  styles.inputError,
-              ]}
-              placeholder="Enter password"
-              placeholderTextColor={placeholderColor}
-              secureTextEntry={true}
-              value={formik.values.password}
-              onChangeText={formik.handleChange("password")}
-              onBlur={formik.handleBlur("password")}
-              autoComplete="password"
-              editable={!isLoading}
-            />
+            {clerkError ? (
+              <View className="min-h-[20px] -mt-2 -mb-2">
+                <Text className="text-danger text-sm text-center leading-5">
+                  {clerkError}
+                </Text>
+              </View>
+            ) : null}
 
-            <ThemedText
-              style={[
-                styles.validationErrorText,
-                !(formik.touched.password && formik.errors.password) &&
-                  styles.hiddenError,
-              ]}
-            >
-              {formik.errors.password || ""}
-            </ThemedText>
-          </View>
-
-          <View style={styles.clerkErrorContainer}>
-            <ThemedText
-              style={[styles.clerkErrorText, !clerkError && styles.hiddenError]}
-            >
-              {clerkError || ""}
-            </ThemedText>
-          </View>
-
-          <View style={styles.buttonsContainer}>
-            <ThemedButton
-              onPress={() => formik.handleSubmit()}
-              disabled={isLoading}
-            >
-              Sign in with email
-            </ThemedButton>
-
-            <SignInWithGoogle />
-
-            {hasCredentials && biometricType && (
-              <ThemedButton
-                onPress={handleBiometricSignIn}
+            <View className="gap-5">
+              <Button
+                onPress={() => formik.handleSubmit()}
                 disabled={isLoading}
               >
-                {biometricType === "face-recognition" ? (
-                  <View style={styles.biometricButton}>
-                    <IconSymbol
-                      name="faceid"
-                      size={60}
-                      weight="regular"
-                      color={buttonTextColor}
-                    />
+                Sign in with email
+              </Button>
 
-                    <ThemedText
-                      style={[
-                        styles.biometricButtonText,
-                        { color: buttonTextColor },
-                      ]}
-                    >
-                      Sign in with Face ID
-                    </ThemedText>
-                  </View>
-                ) : (
-                  <View style={styles.biometricButton}>
-                    <IconSymbol
-                      name="touchid"
-                      size={18}
-                      weight="regular"
-                      color={buttonTextColor}
-                    />
+              <SignInWithGoogle />
 
-                    <ThemedText
-                      style={[
-                        styles.biometricButtonText,
-                        { color: buttonTextColor },
-                      ]}
-                    >
-                      Sign in with Touch ID
-                    </ThemedText>
-                  </View>
-                )}
-              </ThemedButton>
-            )}
+              {hasCredentials && biometricType && (
+                <Button
+                  onPress={handleBiometricSignIn}
+                  disabled={isLoading}
+                  variant="outline"
+                >
+                  {biometricType === "face-recognition" ? (
+                    <View className="flex-col items-center gap-1">
+                      <IconSymbol
+                        name="faceid"
+                        size={40}
+                        weight="regular"
+                        color="currentColor"
+                        className="text-foreground"
+                      />
+
+                      <Text className="text-base font-semibold">
+                        Sign in with Face ID
+                      </Text>
+                    </View>
+                  ) : (
+                    <View className="flex-row items-center gap-2">
+                      <IconSymbol
+                        name="touchid"
+                        size={18}
+                        weight="regular"
+                        color="currentColor"
+                        className="text-foreground"
+                      />
+
+                      <Text className="text-base font-semibold">
+                        Sign in with Touch ID
+                      </Text>
+                    </View>
+                  )}
+                </Button>
+              )}
+            </View>
           </View>
-        </View>
+        </FormikProvider>
 
-        <View style={styles.linksContainer}>
-          <View style={styles.linkItem}>
-            <ThemedText style={styles.linkText}>
-              Don&apos;t have an account?{" "}
-            </ThemedText>
+        <View className="mt-5 gap-2">
+          <View className="flex-row justify-center items-center">
+            <Text className="text-sm">Don&apos;t have an account? </Text>
 
             <Link href="/sign-up">
-              <ThemedText type="link" style={styles.signUpLink}>
+              <Text type="link" className="text-sm">
                 Sign up
-              </ThemedText>
+              </Text>
             </Link>
           </View>
 
-          <View style={styles.linkItem}>
-            <ThemedText style={styles.linkText}>
-              Forgot your password?{" "}
-            </ThemedText>
+          <View className="flex-row justify-center items-center">
+            <Text className="text-sm">Forgot your password? </Text>
 
             <Link href="/password-reset">
-              <ThemedText type="link" style={styles.signUpLink}>
+              <Text type="link" className="text-sm">
                 Reset password
-              </ThemedText>
+              </Text>
             </Link>
           </View>
         </View>
       </View>
-    </ThemedView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  content: {
-    width: "100%",
-    maxWidth: 400,
-  },
-  title: {
-    marginBottom: 32,
-    textAlign: "center",
-  },
-  formContainer: {
-    gap: 16,
-  },
-  fieldsContainer: {
-    gap: 4,
-  },
-  buttonsContainer: {
-    gap: 20,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    minHeight: 50,
-  },
-  inputError: {
-    borderColor: "#ef4444",
-  },
-  validationErrorText: {
-    marginLeft: 10,
-    color: "#ef4444",
-    fontSize: 12,
-    lineHeight: 20,
-  },
-  hiddenError: {
-    opacity: 0,
-  },
-  clerkErrorContainer: {
-    minHeight: 20,
-    marginTop: -10,
-    marginBottom: -10,
-  },
-  clerkErrorText: {
-    color: "#ef4444",
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  linksContainer: {
-    marginTop: 20,
-    gap: 8,
-  },
-  linkItem: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  linkText: {
-    fontSize: 14,
-  },
-  signUpLink: {
-    fontSize: 14,
-  },
-  biometricButton: {
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 2,
-  },
-  biometricButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});

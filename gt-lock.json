@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "branchId": "",
+  "entries": [
+    {
+      "fileId": "879f3a5f954ee8b75bf1e91f4ea9916b41c933e5beba7eb6362647a637c9c66d",
+      "versionId": "91435e24d7688f957e6de036766db9312d198a3b9d57a28dfb559ef643c3ac2a",
+      "translations": {
+        "es": {
+          "updatedAt": "2026-03-25T08:32:35.948Z",
+          "fileName": "/Users/raine/Developer/Repos/expo-convex-clerk-starter-kit/content/es.json",
+          "postProcessHash": "b7cb07c8e6ac7ba572c362ff95e44491cb44b81d006e95b299a98a7b05b0843f"
+        },
+        "fr": {
+          "updatedAt": "2026-03-25T08:32:35.949Z",
+          "fileName": "/Users/raine/Developer/Repos/expo-convex-clerk-starter-kit/content/fr.json",
+          "postProcessHash": "b9d86f460c7abb9ee34578b13e869b8069637030ffaf3b34a578d014f8e042ec"
+        },
+        "ja": {
+          "updatedAt": "2026-03-25T08:32:35.950Z",
+          "fileName": "/Users/raine/Developer/Repos/expo-convex-clerk-starter-kit/content/ja.json",
+          "postProcessHash": "79e7d9191d63557df572dba686b33bc93b03852c7a77915819e7e3d464a2fe37"
+        }
+      },
+      "fileName": "__INTERNAL_GT_TEMPLATE_NAME__",
+      "staged": false
+    }
+  ]
+}

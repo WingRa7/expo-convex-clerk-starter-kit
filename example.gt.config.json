@@ -1,0 +1,10 @@
+{
+  "projectId": "ADD PROJECT ID HERE",
+  "defaultLocale": "en",
+  "locales": ["es", "fr", "ja"],
+  "files": {
+    "gt": {
+      "output": "content/[locale].json"
+    }
+  }
+}

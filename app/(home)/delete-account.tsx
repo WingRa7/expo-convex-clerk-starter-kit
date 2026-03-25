@@ -1,14 +1,13 @@
 import { useUser, useClerk } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
-import { useFormik } from "formik";
+import { useFormik, FormikProvider } from "formik";
 import { useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
 import * as yup from "yup";
 
-import { ThemedButton } from "@/components/ThemedButton";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { useThemeColor } from "@/hooks/use-theme-color";
+import { Button } from "@/components/ui/Button";
+import { Text } from "@/components/ui/Text";
+import { View } from "@/components/ui/View";
+import { FormikField } from "@/components/ui/FormikField";
 
 import { usePasswordVerification } from "@/hooks/usePasswordVerification";
 
@@ -32,14 +31,6 @@ export default function DeleteAccount() {
     clearError,
   } = usePasswordVerification();
 
-  const backgroundColor = useThemeColor({}, "background");
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({ light: "#E0E0E0", dark: "#333" }, "text");
-  const placeholderTextColor = useThemeColor(
-    { light: "#999", dark: "#666" },
-    "icon"
-  );
-
   const formik = useFormik({
     initialValues,
     validationSchema,
@@ -50,7 +41,7 @@ export default function DeleteAccount() {
     },
   });
 
-  const handleDeleteAccount = async (values: { currentPassword: string }) => {
+  const handleDeleteAccount = async (values: typeof initialValues) => {
     if (!isLoaded || !user) {
       return;
     }
@@ -64,12 +55,10 @@ export default function DeleteAccount() {
       return;
     }
 
-    // TODO remove credentials?
     try {
       await user?.delete();
       await signOut();
       router.replace("/");
-      // TODO: Add a success message to the user, toast
     } catch (err: any) {
       console.error("Delete account error:", JSON.stringify(err, null, 2));
       const errorMessage =
@@ -80,142 +69,58 @@ export default function DeleteAccount() {
     }
   };
 
-  const displayError = clerkError || verificationError; // TODO modify other error displays to follow this logic
+  const displayError = clerkError || verificationError;
   const isLoading = formik.isSubmitting || isVerifying;
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.content}>
-        <ThemedText type="title" style={styles.title}>
+    <View className="flex-1 justify-center items-center bg-background p-5">
+      <View className="w-full max-w-[400px]">
+        <Text type="title" className="mb-8 text-center text-danger">
           Delete Account
-        </ThemedText>
+        </Text>
 
-        <View style={styles.formContainer}>
-          <View style={styles.fieldsContainer}>
-            <ThemedText style={styles.label}>Current Password</ThemedText>
-            <TextInput
-              style={[
-                styles.input,
-                { color: textColor, borderColor, backgroundColor },
-                formik.touched.currentPassword &&
-                  formik.errors.currentPassword &&
-                  styles.inputError,
-              ]}
-              value={formik.values.currentPassword}
-              onChangeText={formik.handleChange("currentPassword")}
-              onBlur={formik.handleBlur("currentPassword")}
-              placeholder="Enter password"
-              placeholderTextColor={placeholderTextColor}
-              secureTextEntry
-              autoComplete="password"
-              editable={!isLoading}
-            />
+        <Text className="text-base mb-6 text-center">
+          Are you sure you want to delete your account? This action cannot be undone.
+        </Text>
 
-            <ThemedText
-              style={[
-                styles.validationErrorText,
-                !(
-                  formik.touched.currentPassword &&
-                  formik.errors.currentPassword
-                ) && styles.hiddenError,
-              ]}
-            >
-              {formik.errors.currentPassword || ""}
-            </ThemedText>
+        <FormikProvider value={formik}>
+          <View className="gap-4">
+            <View className="gap-1">
+              <Text className="text-base mb-2">Confirm Password</Text>
+              <FormikField
+                name="currentPassword"
+                placeholder="Enter password"
+                secureTextEntry
+                autoComplete="password"
+                editable={!isLoading}
+              />
+            </View>
+
+            {displayError ? (
+              <Text className="text-danger text-sm text-center leading-5 -mt-2">
+                {displayError}
+              </Text>
+            ) : null}
+
+            <View className="gap-3 mt-4">
+              <Button
+                onPress={() => formik.handleSubmit()}
+                disabled={isLoading}
+                variant="danger"
+              >
+                {isLoading ? "Deleting..." : "Delete Account"}
+              </Button>
+
+              <Button
+                onPress={() => router.back()}
+                variant="ghost"
+              >
+                Cancel
+              </Button>
+            </View>
           </View>
-
-          <View style={styles.clerkErrorContainer}>
-            <ThemedText
-              style={[
-                styles.clerkErrorText,
-                !displayError && styles.hiddenError,
-              ]}
-            >
-              {displayError || ""}
-            </ThemedText>
-          </View>
-
-          <View style={styles.buttonsContainer}>
-            <ThemedButton
-              onPress={() => formik.handleSubmit()}
-              disabled={isLoading}
-            >
-              {isLoading ? "Deleting..." : "Delete Account"}
-            </ThemedButton>
-
-            <ThemedButton
-              onPress={() => router.back()}
-              style={styles.cancelButton}
-              lightBackgroundColor="#f0f0f0"
-              darkBackgroundColor="#333"
-            >
-              Cancel
-            </ThemedButton>
-          </View>
-        </View>
+        </FormikProvider>
       </View>
-    </ThemedView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  content: {
-    width: "100%",
-    maxWidth: 400,
-  },
-  title: {
-    marginBottom: 32,
-    textAlign: "center",
-  },
-  formContainer: {
-    gap: 16,
-  },
-  fieldsContainer: {
-    gap: 4,
-  },
-  buttonsContainer: {
-    gap: 12,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    minHeight: 50,
-  },
-  inputError: {
-    borderColor: "#ef4444",
-  },
-  validationErrorText: {
-    marginLeft: 10,
-    color: "#ef4444",
-    fontSize: 12,
-  },
-  hiddenError: {
-    opacity: 0,
-  },
-  clerkErrorContainer: {
-    minHeight: 20,
-    marginTop: -10,
-    marginBottom: -10,
-  },
-  clerkErrorText: {
-    color: "#ef4444",
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  cancelButton: {
-    marginTop: 8,
-  },
-});

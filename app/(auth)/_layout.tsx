@@ -6,7 +6,7 @@ export default function AuthLayout() {
   return (
     <>
       <Authenticated>
-        <Redirect href={"/(home)/(tabs)"} />
+        <Redirect href={"/(home)/(tabs)/"} />
       </Authenticated>
       <AuthLoading>
         <ActivityIndicator style={{ flex: 1 }} size="large" />

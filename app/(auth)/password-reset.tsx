@@ -1,12 +1,11 @@
-import { ThemedButton } from "@/components/ThemedButton";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { useThemeColor } from "@/hooks/use-theme-color";
+import { Button } from "@/components/ui/Button";
+import { Text } from "@/components/ui/Text";
+import { View } from "@/components/ui/View";
+import { FormikField } from "@/components/ui/FormikField";
 import { useSignIn } from "@clerk/clerk-expo";
 import { Link } from "expo-router";
-import { useFormik } from "formik";
+import { useFormik, FormikProvider } from "formik";
 import { useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
 import * as yup from "yup";
 
 const emailInitialValues = {
@@ -39,14 +38,6 @@ export default function PasswordResetPage() {
   const [clerkError, setClerkError] = useState("");
 
   const { isLoaded, signIn, setActive } = useSignIn();
-
-  const backgroundColor = useThemeColor({}, "background");
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({ light: "#E0E0E0", dark: "#333" }, "text");
-  const placeholderTextColor = useThemeColor(
-    { light: "#999", dark: "#666" },
-    "icon"
-  );
 
   // Formik instance for email entry form
   const emailFormik = useFormik({
@@ -122,6 +113,11 @@ export default function PasswordResetPage() {
         setClerkError("Unexpected status: " + result.status);
       }
     } catch (err: any) {
+      if (err?.errors?.some((e: any) => e.code === "session_exists")) {
+        console.log("✅ Session already exists (password-reset)");
+        return;
+      }
+
       console.error("Reset password error:", JSON.stringify(err, null, 2));
       const errorMessage =
         err?.errors?.[0]?.longMessage ||
@@ -132,232 +128,94 @@ export default function PasswordResetPage() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.content}>
-        <ThemedText type="title" style={styles.title}>
+    <View className="flex-1 justify-center items-center bg-background p-5">
+      <View className="w-full max-w-[400px]">
+        <Text type="title" className="mb-8 text-center">
           Forgot Password?
-        </ThemedText>
-        <View style={styles.formContainer}>
+        </Text>
+        
+        <View className="gap-4">
           {!successfulCreation && (
-            <>
-              <ThemedText style={styles.label}>
-                Provide your email address
-              </ThemedText>
-              <View style={styles.fieldsContainer}>
-                <TextInput
-                  style={[
-                    styles.input,
-                    { color: textColor, borderColor, backgroundColor },
-                    emailFormik.touched.email &&
-                      emailFormik.errors.email &&
-                      styles.inputError,
-                  ]}
-                  value={emailFormik.values.email}
-                  onChangeText={emailFormik.handleChange("email")}
-                  onBlur={emailFormik.handleBlur("email")}
+            <FormikProvider value={emailFormik}>
+              <View className="gap-4">
+                <Text className="text-base mb-2">
+                  Provide your email address
+                </Text>
+                
+                <FormikField
+                  name="email"
                   placeholder="e.g myname@email.com"
-                  placeholderTextColor={placeholderTextColor}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   autoComplete="email"
                 />
-                <ThemedText
-                  style={[
-                    styles.validationErrorText,
-                    !(emailFormik.touched.email && emailFormik.errors.email) &&
-                      styles.hiddenError,
-                  ]}
-                >
-                  {emailFormik.errors.email || ""}
-                </ThemedText>
-              </View>
 
-              <View style={styles.clerkErrorContainer}>
-                <ThemedText
-                  style={[
-                    styles.clerkErrorText,
-                    !clerkError && styles.hiddenError,
-                  ]}
-                >
-                  {clerkError || ""}
-                </ThemedText>
-              </View>
+                {clerkError ? (
+                  <Text className="text-danger text-sm text-center leading-5 -mt-2">
+                    {clerkError}
+                  </Text>
+                ) : null}
 
-              <ThemedButton onPress={() => emailFormik.handleSubmit()}>
-                Send password reset code
-              </ThemedButton>
-            </>
+                <Button onPress={() => emailFormik.handleSubmit()}>
+                  Send password reset code
+                </Button>
+              </View>
+            </FormikProvider>
           )}
 
           {successfulCreation && (
-            <>
-              <ThemedText style={styles.label}>
-                Enter your new password
-              </ThemedText>
-              <View style={styles.fieldsContainer}>
-                <TextInput
-                  style={[
-                    styles.input,
-                    { color: textColor, borderColor, backgroundColor },
-                    resetFormik.touched.password &&
-                      resetFormik.errors.password &&
-                      styles.inputError,
-                  ]}
-                  value={resetFormik.values.password}
-                  onChangeText={resetFormik.handleChange("password")}
-                  onBlur={resetFormik.handleBlur("password")}
+            <FormikProvider value={resetFormik}>
+              <View className="gap-4">
+                <Text className="text-base mb-2">
+                  Enter your new password
+                </Text>
+                
+                <FormikField
+                  name="password"
                   placeholder="Enter new password"
-                  placeholderTextColor={placeholderTextColor}
                   secureTextEntry={true}
                   autoComplete="password-new"
                 />
-                <ThemedText
-                  style={[
-                    styles.validationErrorText,
-                    !(
-                      resetFormik.touched.password &&
-                      resetFormik.errors.password
-                    ) && styles.hiddenError,
-                  ]}
-                >
-                  {resetFormik.errors.password || ""}
-                </ThemedText>
 
-                <ThemedText style={styles.label}>
+                <Text className="text-base mt-2 mb-2">
                   Enter the password reset code that was sent to your email
-                </ThemedText>
-                <TextInput
-                  style={[
-                    styles.input,
-                    { color: textColor, borderColor, backgroundColor },
-                    resetFormik.touched.code &&
-                      resetFormik.errors.code &&
-                      styles.inputError,
-                  ]}
-                  value={resetFormik.values.code}
-                  onChangeText={resetFormik.handleChange("code")}
-                  onBlur={resetFormik.handleBlur("code")}
+                </Text>
+                
+                <FormikField
+                  name="code"
                   placeholder="Enter code"
-                  placeholderTextColor={placeholderTextColor}
                   keyboardType="number-pad"
                   autoCapitalize="none"
                 />
-                <ThemedText
-                  style={[
-                    styles.validationErrorText,
-                    !(resetFormik.touched.code && resetFormik.errors.code) &&
-                      styles.hiddenError,
-                  ]}
-                >
-                  {resetFormik.errors.code || ""}
-                </ThemedText>
+
+                {clerkError ? (
+                  <Text className="text-danger text-sm text-center leading-5 -mt-2">
+                    {clerkError}
+                  </Text>
+                ) : null}
+
+                <Button onPress={() => resetFormik.handleSubmit()}>
+                  Reset
+                </Button>
               </View>
-              <View style={styles.clerkErrorContainer}>
-                <ThemedText
-                  style={[
-                    styles.clerkErrorText,
-                    !clerkError && styles.hiddenError,
-                  ]}
-                >
-                  {clerkError || ""}
-                </ThemedText>
-              </View>
-              <ThemedButton onPress={() => resetFormik.handleSubmit()}>
-                Reset
-              </ThemedButton>
-            </>
+            </FormikProvider>
           )}
 
           {secondFactor && (
-            <ThemedText style={styles.error}>
+            <Text className="text-danger text-sm text-center mt-2">
               2FA is required, but this UI does not handle that
-            </ThemedText>
+            </Text>
           )}
 
-          <View style={styles.linkContainer}>
+          <View className="flex-row justify-center items-center mt-2">
             <Link href="/(auth)/sign-in">
-              <ThemedText type="link" style={styles.signUpLink}>
+              <Text type="link" className="text-sm">
                 Back to sign in
-              </ThemedText>
+              </Text>
             </Link>
           </View>
         </View>
       </View>
-    </ThemedView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  content: {
-    width: "100%",
-    maxWidth: 400,
-  },
-  title: {
-    marginBottom: 32,
-    textAlign: "center",
-  },
-  formContainer: {
-    gap: 16,
-  },
-  fieldsContainer: {
-    gap: 4,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    minHeight: 50,
-  },
-  inputError: {
-    borderColor: "#ef4444",
-  },
-  validationErrorText: {
-    marginLeft: 10,
-    color: "#ef4444",
-    fontSize: 12,
-    lineHeight: 20,
-  },
-  hiddenError: {
-    opacity: 0,
-  },
-  clerkErrorContainer: {
-    minHeight: 20,
-    marginTop: -10,
-    marginBottom: -10,
-  },
-  clerkErrorText: {
-    color: "#ef4444",
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  linkContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  linkText: {
-    fontSize: 14,
-  },
-  signUpLink: {
-    fontSize: 14,
-  },
-  error: {
-    color: "#ef4444",
-    fontSize: 14,
-    textAlign: "center",
-    marginTop: 8,
-  },
-});

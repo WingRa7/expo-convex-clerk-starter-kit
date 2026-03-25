@@ -1,17 +1,16 @@
-import React from "react";
-import { View, Button, StyleSheet } from "react-native";
+import React, { useEffect } from "react";
+import { StyleSheet } from "react-native";
+import { View } from "@/components/ui/View";
 import { Svg, Path } from "react-native-svg";
 import Animated, {
   useSharedValue,
   useAnimatedProps,
+  withRepeat,
   withTiming,
   interpolateColor,
-  interpolate,
   withSpring,
 } from "react-native-reanimated";
 import { interpolatePath, parse } from "react-native-redash";
-import { ThemedButton } from "./ThemedButton";
-import { ThemedText } from "./ThemedText";
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
@@ -26,18 +25,21 @@ const paths = [
     "M400.5,296Q303,342,228,380Q153,418,134.5,334Q116,250,143.5,181.5Q171,113,247,118Q323,123,410.5,186.5Q498,250,400.5,296Z"
   ),
 ];
-const colors = ["#197ea3", "#0A7EA4", "#A1CEDC"];
+const colors = ["#E0F2FE", "#F0FDFA", "#F5F3FF"]; // Softer colors for a minimal look
 const numPaths = paths.length;
 
-export default function AnimatedBlob() {
+export default function AnimatedBlob({ size = 300, autoPlay = true }: { size?: number, autoPlay?: boolean }) {
   const animation = useSharedValue(0);
 
-  const handlePress = () => {
-    animation.value = withSpring(animation.value + 1, {
-      damping: 15,
-      stiffness: 100,
-    });
-  };
+  useEffect(() => {
+    if (autoPlay) {
+      animation.value = withRepeat(
+        withTiming(numPaths - 0.01, { duration: 10000 }),
+        -1,
+        true
+      );
+    }
+  }, [autoPlay]);
 
   const animatedProps = useAnimatedProps(() => {
     const currentPathIndex = Math.floor(animation.value) % numPaths;
@@ -63,18 +65,10 @@ export default function AnimatedBlob() {
   });
 
   return (
-    <View style={styles.container}>
-      <Svg width={300} height={300} viewBox="0 0 500 500">
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <Svg width={size} height={size} viewBox="0 0 500 500">
         <AnimatedPath animatedProps={animatedProps} />
       </Svg>
-
-      <ThemedButton onPress={handlePress}>
-        <ThemedText>Morph</ThemedText>
-      </ThemedButton>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center" },
-});

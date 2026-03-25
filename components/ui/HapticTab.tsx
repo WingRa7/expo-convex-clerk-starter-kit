@@ -8,11 +8,17 @@ export function HapticTab(props: BottomTabBarButtonProps) {
       {...props}
       onPressIn={(ev) => {
         if (process.env.EXPO_OS === 'ios') {
-          // Add a soft haptic feedback when pressing down on the tabs.
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          // Use selectionAsync for tab-switching as it's the platform standard 
+          // and often more reliable in simulators than specific impact patterns.
+          try {
+            Haptics.selectionAsync();
+          } catch (error) {
+            // Silently ignore haptic errors (common in iOS simulators)
+          }
         }
         props.onPressIn?.(ev);
       }}
     />
   );
 }
+

@@ -1,12 +1,11 @@
-import { ThemedButton } from "@/components/ThemedButton";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { useThemeColor } from "@/hooks/use-theme-color";
+import { Button } from "@/components/ui/Button";
+import { Text } from "@/components/ui/Text";
+import { View } from "@/components/ui/View";
+import { FormikField } from "@/components/ui/FormikField";
 import { useSignUp } from "@clerk/clerk-expo";
-import { Link, useRouter } from "expo-router";
-import { useFormik } from "formik";
+import { Link } from "expo-router";
+import { FormikProvider, useFormik } from "formik";
 import { useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
 import * as yup from "yup";
 
 const signUpInitialValues = {
@@ -31,14 +30,8 @@ const signUpValidationSchema = yup.object().shape({
     .min(4, "Username must be at least 4 characters")
     .max(20, "Username must be less than 20 characters")
     .required("Username is required"),
-  firstName: yup
-    .string()
-    // .optional()
-    .required("First name is required"),
-  lastName: yup
-    .string()
-    // .optional()
-    .required("Last name is required"),
+  firstName: yup.string().required("First name is required"),
+  lastName: yup.string().required("Last name is required"),
 });
 
 const verificationInitialValues = {
@@ -51,19 +44,10 @@ const verificationValidationSchema = yup.object().shape({
 
 export default function SignUpScreen() {
   const { isLoaded, signUp, setActive } = useSignUp();
-  const router = useRouter();
 
   const [pendingVerification, setPendingVerification] = useState(false);
   const [clerkError, setClerkError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  const backgroundColor = useThemeColor({}, "background");
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({ light: "#E0E0E0", dark: "#333" }, "text");
-  const placeholderColor = useThemeColor(
-    { light: "#999", dark: "#666" },
-    "icon"
-  );
 
   // Formik instance for sign-up form
   const signUpFormik = useFormik({
@@ -86,14 +70,8 @@ export default function SignUpScreen() {
       await onVerifyPress(values.code);
     },
   });
-  // TODO repeat password field and logic
-  const onSignUpPress = async (values: {
-    email: string;
-    password: string;
-    username: string;
-    firstName: string;
-    lastName: string;
-  }) => {
+
+  const onSignUpPress = async (values: typeof signUpInitialValues) => {
     if (!isLoaded || isLoading) return;
 
     setClerkError("");
@@ -104,8 +82,8 @@ export default function SignUpScreen() {
         emailAddress: values.email,
         password: values.password,
         username: values.username,
-        firstName: values.firstName || undefined,
-        lastName: values.lastName || undefined,
+        firstName: values.firstName,
+        lastName: values.lastName,
       });
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
@@ -113,12 +91,38 @@ export default function SignUpScreen() {
       setPendingVerification(true);
       setClerkError("");
     } catch (err: any) {
-      const errorMessage =
-        err?.errors?.[0]?.longMessage ||
-        err?.errors?.[0]?.message ||
-        err?.message ||
-        "An error occurred during sign up. Please try again.";
-      setClerkError(errorMessage);
+      if (err?.errors) {
+        const fieldErrors: Record<string, string> = {};
+        const generalErrors: string[] = [];
+
+        err.errors.forEach((e: any) => {
+          let fieldName = e.meta?.paramName;
+          if (fieldName === "email_address") fieldName = "email";
+
+          if (
+            fieldName &&
+            Object.keys(signUpInitialValues).includes(fieldName)
+          ) {
+            fieldErrors[fieldName] = e.longMessage || e.message;
+          } else {
+            generalErrors.push(e.longMessage || e.message);
+          }
+        });
+
+        if (Object.keys(fieldErrors).length > 0) {
+          signUpFormik.setErrors(fieldErrors);
+        }
+
+        if (generalErrors.length > 0) {
+          setClerkError(generalErrors.join("\n"));
+        } else {
+          setClerkError("");
+        }
+      } else {
+        setClerkError(
+          err?.message || "An error occurred during sign up. Please try again.",
+        );
+      }
       console.error("Sign up error:", JSON.stringify(err, null, 2));
     } finally {
       setIsLoading(false);
@@ -143,12 +147,43 @@ export default function SignUpScreen() {
         console.error("Sign up error:", JSON.stringify(signUpAttempt, null, 2));
       }
     } catch (err: any) {
-      const errorMessage =
-        err?.errors?.[0]?.longMessage ||
-        err?.errors?.[0]?.message ||
-        err?.message ||
-        "An error occurred during verification. Please try again.";
-      setClerkError(errorMessage);
+      if (err?.errors?.some((e: any) => e.code === "session_exists")) {
+        console.log("✅ Session already exists (sign-up)");
+        return;
+      }
+
+      if (err?.errors) {
+        const fieldErrors: Record<string, string> = {};
+        const generalErrors: string[] = [];
+
+        err.errors.forEach((e: any) => {
+          let fieldName = e.meta?.paramName;
+
+          if (
+            fieldName &&
+            Object.keys(verificationInitialValues).includes(fieldName)
+          ) {
+            fieldErrors[fieldName] = e.longMessage || e.message;
+          } else {
+            generalErrors.push(e.longMessage || e.message);
+          }
+        });
+
+        if (Object.keys(fieldErrors).length > 0) {
+          verificationFormik.setErrors(fieldErrors);
+        }
+
+        if (generalErrors.length > 0) {
+          setClerkError(generalErrors.join("\n"));
+        } else {
+          setClerkError("");
+        }
+      } else {
+        setClerkError(
+          err?.message ||
+            "An error occurred during verification. Please try again.",
+        );
+      }
       console.error("Verification error:", JSON.stringify(err, null, 2));
     } finally {
       setIsLoading(false);
@@ -157,317 +192,122 @@ export default function SignUpScreen() {
 
   if (pendingVerification) {
     return (
-      <ThemedView style={styles.container}>
-        <View style={styles.content}>
-          <ThemedText type="title" style={styles.title}>
+      <View className="flex-1 justify-center items-center bg-background p-5">
+        <View className="w-full max-w-[400px]">
+          <Text type="title" className="mb-2 text-center">
             Verify your email
-          </ThemedText>
-          <ThemedText style={styles.verificationText}>
+          </Text>
+          <Text className="text-sm text-center mb-6 opacity-70">
             We&apos;ve sent a verification code to your email address.
-          </ThemedText>
-          <View style={styles.formContainer}>
-            <View style={styles.fieldsContainer}>
-              <TextInput
-                style={[
-                  styles.input,
-                  { color: textColor, borderColor, backgroundColor },
-                  verificationFormik.touched.code &&
-                    verificationFormik.errors.code &&
-                    styles.inputError,
-                ]}
-                value={verificationFormik.values.code}
+          </Text>
+
+          <FormikProvider value={verificationFormik}>
+            <View className="gap-4">
+              <FormikField
+                name="code"
                 placeholder="Enter your verification code"
-                placeholderTextColor={placeholderColor}
-                onChangeText={verificationFormik.handleChange("code")}
-                onBlur={verificationFormik.handleBlur("code")}
                 keyboardType="number-pad"
                 autoComplete="one-time-code"
                 editable={!isLoading}
               />
-              <ThemedText
-                style={[
-                  styles.validationErrorText,
-                  verificationFormik.touched.code &&
-                    verificationFormik.errors.code &&
-                    styles.hiddenError,
-                ]}
-              >
-                {verificationFormik.errors.code}
-              </ThemedText>
-            </View>
 
-            <View style={styles.clerkErrorContainer}>
-              <ThemedText
-                style={[
-                  styles.clerkErrorText,
-                  !clerkError && styles.hiddenError,
-                ]}
-              >
-                {clerkError || ""}
-              </ThemedText>
-            </View>
+              {clerkError ? (
+                <Text className="text-danger text-sm text-center leading-5 -mt-2">
+                  {clerkError}
+                </Text>
+              ) : null}
 
-            <ThemedButton
-              onPress={() => verificationFormik.handleSubmit()}
-              disabled={isLoading}
-            >
-              {isLoading ? "Verifying..." : "Verify"}
-            </ThemedButton>
-          </View>
+              <Button
+                onPress={() => verificationFormik.handleSubmit()}
+                disabled={isLoading}
+              >
+                {isLoading ? "Verifying..." : "Verify"}
+              </Button>
+            </View>
+          </FormikProvider>
         </View>
-      </ThemedView>
+      </View>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.content}>
-        <ThemedText type="title" style={styles.title}>
+    <View className="flex-1 justify-center items-center bg-background p-5">
+      <View className="w-full max-w-[400px]">
+        <Text type="title" className="mb-8 text-center">
           Sign up
-        </ThemedText>
+        </Text>
 
-        <View style={styles.formContainer}>
-          <View style={styles.fieldsContainer}>
-            <TextInput
-              style={[
-                styles.input,
-                { color: textColor, borderColor, backgroundColor },
-                signUpFormik.touched.email &&
-                  signUpFormik.errors.email &&
-                  styles.inputError,
-              ]}
-              autoCapitalize="none"
-              placeholder="Enter email"
-              placeholderTextColor={placeholderColor}
-              value={signUpFormik.values.email}
-              onChangeText={signUpFormik.handleChange("email")}
-              onBlur={signUpFormik.handleBlur("email")}
-              keyboardType="email-address"
-              autoComplete="email"
-              editable={!isLoading}
-            />
-            <ThemedText
-              style={[
-                styles.validationErrorText,
-                !(signUpFormik.touched.email && signUpFormik.errors.email) &&
-                  styles.hiddenError,
-              ]}
-            >
-              {signUpFormik.errors.email}
-            </ThemedText>
+        <FormikProvider value={signUpFormik}>
+          <View className="gap-4">
+            <View className="gap-1">
+              <FormikField
+                name="email"
+                placeholder="Enter email"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoComplete="email"
+                editable={!isLoading}
+              />
 
-            <TextInput
-              style={[
-                styles.input,
-                { color: textColor, borderColor, backgroundColor },
-                signUpFormik.touched.password &&
-                  signUpFormik.errors.password &&
-                  styles.inputError,
-              ]}
-              placeholder="Enter password"
-              placeholderTextColor={placeholderColor}
-              secureTextEntry={true}
-              value={signUpFormik.values.password}
-              onChangeText={signUpFormik.handleChange("password")}
-              onBlur={signUpFormik.handleBlur("password")}
-              autoComplete="password"
-              editable={!isLoading}
-            />
-            <ThemedText
-              style={[
-                styles.validationErrorText,
-                !(
-                  signUpFormik.touched.password && signUpFormik.errors.password
-                ) && styles.hiddenError,
-              ]}
-            >
-              {signUpFormik.errors.password}
-            </ThemedText>
+              <FormikField
+                name="password"
+                placeholder="Enter password"
+                secureTextEntry={true}
+                autoComplete="password"
+                editable={!isLoading}
+              />
 
-            <TextInput
-              style={[
-                styles.input,
-                { color: textColor, borderColor, backgroundColor },
-                signUpFormik.touched.username &&
-                  signUpFormik.errors.username &&
-                  styles.inputError,
-              ]}
-              autoCapitalize="none"
-              placeholder="Enter username"
-              placeholderTextColor={placeholderColor}
-              value={signUpFormik.values.username}
-              onChangeText={signUpFormik.handleChange("username")}
-              onBlur={signUpFormik.handleBlur("username")}
-              autoComplete="username"
-              editable={!isLoading}
-            />
-            <ThemedText
-              style={[
-                styles.validationErrorText,
-                !(
-                  signUpFormik.touched.username && signUpFormik.errors.username
-                ) && styles.hiddenError,
-              ]}
-            >
-              {signUpFormik.errors.username}
-            </ThemedText>
+              <FormikField
+                name="username"
+                placeholder="Enter username"
+                autoCapitalize="none"
+                autoComplete="username"
+                editable={!isLoading}
+              />
 
-            <TextInput
-              style={[
-                styles.input,
-                { color: textColor, borderColor, backgroundColor },
-                signUpFormik.touched.firstName &&
-                  signUpFormik.errors.firstName &&
-                  styles.inputError,
-              ]}
-              autoCapitalize="words"
-              placeholder="Enter first name (optional)"
-              placeholderTextColor={placeholderColor}
-              value={signUpFormik.values.firstName}
-              onChangeText={signUpFormik.handleChange("firstName")}
-              onBlur={signUpFormik.handleBlur("firstName")}
-              autoComplete="given-name"
-              editable={!isLoading}
-            />
-            <ThemedText
-              style={[
-                styles.validationErrorText,
-                !(
-                  signUpFormik.touched.firstName &&
-                  signUpFormik.errors.firstName
-                ) && styles.hiddenError,
-              ]}
-            >
-              {signUpFormik.errors.firstName}
-            </ThemedText>
+              <FormikField
+                name="firstName"
+                placeholder="Enter first name"
+                autoCapitalize="words"
+                autoComplete="given-name"
+                editable={!isLoading}
+              />
 
-            <TextInput
-              style={[
-                styles.input,
-                { color: textColor, borderColor, backgroundColor },
-                signUpFormik.touched.lastName &&
-                  signUpFormik.errors.lastName &&
-                  styles.inputError,
-              ]}
-              autoCapitalize="words"
-              placeholder="Enter last name (optional)"
-              placeholderTextColor={placeholderColor}
-              value={signUpFormik.values.lastName}
-              onChangeText={signUpFormik.handleChange("lastName")}
-              onBlur={signUpFormik.handleBlur("lastName")}
-              autoComplete="family-name"
-              editable={!isLoading}
-            />
-            <ThemedText
-              style={[
-                styles.validationErrorText,
-                !(
-                  signUpFormik.touched.lastName && signUpFormik.errors.lastName
-                ) && styles.hiddenError,
-              ]}
+              <FormikField
+                name="lastName"
+                placeholder="Enter last name"
+                autoCapitalize="words"
+                autoComplete="family-name"
+                editable={!isLoading}
+              />
+            </View>
+
+            {clerkError ? (
+              <Text className="text-danger text-sm text-center leading-5 -mt-2">
+                {clerkError}
+              </Text>
+            ) : null}
+
+            <Button
+              onPress={() => signUpFormik.handleSubmit()}
+              disabled={isLoading}
             >
-              {signUpFormik.errors.lastName || ""}
-            </ThemedText>
+              {isLoading ? "Signing up..." : "Continue"}
+            </Button>
+
+            <View className="flex-row justify-center items-center mt-5">
+              <Text className="text-sm">
+                Already have an account?{" "}
+              </Text>
+              <Link href="/sign-in">
+                <Text type="link" className="text-sm">
+                  Sign in
+                </Text>
+              </Link>
+            </View>
           </View>
-        </View>
-
-        <ThemedText
-          style={[styles.clerkErrorText, !clerkError && styles.hiddenError]}
-        >
-          {clerkError || ""}
-        </ThemedText>
-
-        <ThemedButton
-          onPress={() => signUpFormik.handleSubmit()}
-          disabled={isLoading}
-        >
-          {isLoading ? "Signing up..." : "Continue"}
-        </ThemedButton>
-        <View style={styles.linkContainer}>
-          <ThemedText style={styles.linkText}>
-            Already have an account?{" "}
-          </ThemedText>
-          <Link href="/sign-in">
-            <ThemedText type="link" style={styles.signInLink}>
-              Sign in
-            </ThemedText>
-          </Link>
-        </View>
+        </FormikProvider>
       </View>
-    </ThemedView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  content: {
-    width: "100%",
-    maxWidth: 400,
-  },
-  title: {
-    marginBottom: 32,
-    textAlign: "center",
-  },
-  verificationText: {
-    fontSize: 14,
-    textAlign: "center",
-    marginBottom: 24,
-    opacity: 0.7,
-  },
-  formContainer: {
-    gap: 16,
-  },
-  fieldsContainer: {
-    gap: 4,
-  },
-  buttonsContainer: {
-    gap: 12,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    minHeight: 50,
-  },
-  inputError: {
-    borderColor: "#ef4444",
-  },
-  validationErrorText: {
-    marginLeft: 10,
-    color: "#ef4444",
-    fontSize: 12,
-    lineHeight: 20,
-  },
-  hiddenError: {
-    opacity: 0,
-  },
-  clerkErrorContainer: {
-    minHeight: 20,
-    marginTop: -10,
-    marginBottom: -10,
-  },
-  clerkErrorText: {
-    color: "#ef4444",
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  linkContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 20,
-  },
-  linkText: {
-    fontSize: 14,
-  },
-  signInLink: {
-    fontSize: 14,
-  },
-});

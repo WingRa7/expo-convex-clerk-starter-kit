@@ -1,0 +1,390 @@
+{
+  "00fb8047aff083a8": {
+    "c": "Texto provisional para el segundo paso de la incorporación.",
+    "i": 1,
+    "t": "Text"
+  },
+  "0a64871c2fcd62bf": {
+    "c": "1. Introducción",
+    "i": 1,
+    "t": "Text"
+  },
+  "0ced695d1acd3156": {
+    "c": [
+      "Completado ",
+      {
+        "c": "Rutina",
+        "i": 2,
+        "t": "Text"
+      }
+    ],
+    "i": 1,
+    "t": "Text"
+  },
+  "0f442932c6435aad": {
+    "c": {
+      "i": 2,
+      "k": "_gt_value_2",
+      "v": "v"
+    },
+    "i": 1,
+    "t": "Text"
+  },
+  "10835657ebf75f73": {
+    "c": [
+      "¡Hola, ",
+      {
+        "i": 2,
+        "k": "_gt_value_2",
+        "v": "v"
+      },
+      "!"
+    ],
+    "i": 1,
+    "t": "Text"
+  },
+  "10f47bb3b5edac10": {
+    "c": "Amigo, desarrollado por RaineTech, se compromete a proteger su privacidad. Esta política explica cómo tratamos sus datos para prestar los servicios de la aplicación.",
+    "i": 1,
+    "t": "Text"
+  },
+  "124670c62a1b0f16": {
+    "c": "Echa un vistazo a la pestaña Explorar para ver las nuevas animaciones.",
+    "i": 1,
+    "t": "Text"
+  },
+  "1534a55a8b5ebb0e": {
+    "c": "Sistema de diseño limpio y enfocado.",
+    "i": 1,
+    "t": "Text"
+  },
+  "22a46ed6de8d5367": {
+    "c": "Este es un patrón de navegación de modal estándar para acciones específicas.",
+    "i": 1,
+    "t": "Text"
+  },
+  "2f6b450f598c6272": {
+    "c": "Debes tener al menos 13 años (o la edad mínima exigida en tu país) para usar Amigo. Al usar la app, declaras que cumples con este requisito.",
+    "i": 1,
+    "t": "Text"
+  },
+  "34c5855d44d917d9": {
+    "c": "Se unió",
+    "i": 1,
+    "t": "Text"
+  },
+  "3b2b43944984bd94": {
+    "c": "Puntos",
+    "i": 1,
+    "t": "Text"
+  },
+  "3cdd31bb57d9e2cc": {
+    "c": "Movimiento fluido",
+    "i": 1,
+    "t": "Text"
+  },
+  "4027f915e27a1bb2": {
+    "c": "Explorar",
+    "i": 1,
+    "t": "Text"
+  },
+  "4570406e2d38d956": {
+    "c": "Política de privacidad",
+    "i": 1,
+    "t": "Text"
+  },
+  "53631f0318e3e676": {
+    "c": [
+      "• ",
+      {
+        "c": "Información de contacto:",
+        "i": 2,
+        "t": "Text"
+      },
+      " Nombre y dirección de correo electrónico a través de Clerk. • ",
+      {
+        "c": "Identificadores:",
+        "i": 3,
+        "t": "Text"
+      },
+      " ID del dispositivo e ID de usuario para el funcionamiento de la aplicación. • ",
+      {
+        "c": "Compras e información financiera:",
+        "i": 4,
+        "t": "Text"
+      },
+      " Usamos RevenueCat para procesar las compras dentro de la aplicación. No almacenamos los datos de su tarjeta de crédito; Apple App Store los gestiona de forma segura. • ",
+      {
+        "c": "Contenido del usuario:",
+        "i": 5,
+        "t": "Text"
+      },
+      " Tareas, descripciones, mensajes e imágenes de tareas que usted cargue. • ",
+      {
+        "c": "Datos de uso:",
+        "i": 6,
+        "t": "Text"
+      },
+      " Registros técnicos para mejorar el rendimiento de la aplicación."
+    ],
+    "i": 1,
+    "t": "Text"
+  },
+  "537838a8cce5777b": {
+    "c": "General",
+    "i": 1,
+    "t": "Text"
+  },
+  "5bdbc63ea1228e83": {
+    "c": "Lo estás haciendo genial hoy.",
+    "i": 1,
+    "t": "Text"
+  },
+  "5edc36691938786a": {
+    "c": "¡Todo listo!",
+    "i": 1,
+    "t": "Text"
+  },
+  "61a64e71b76c6801": {
+    "c": "Cerrar sesión",
+    "i": 1,
+    "t": "Text"
+  },
+  "6212bc121831d738": {
+    "c": [
+      "• Eres responsable de mantener la confidencialidad de tus credenciales de autenticación de Clerk. • Eres el único responsable de toda la actividad que ocurra en tu cuenta. • RaineTech se reserva el derecho de suspender o cancelar cuentas que incumplan estos términos."
+    ],
+    "i": 1,
+    "t": "Text"
+  },
+  "686f916ae30b822f": {
+    "c": [
+      "Fecha de entrada en vigor: 21 de marzo de 2026 Desarrollador: RaineTech (tom@raine.run)"
+    ],
+    "i": 1,
+    "t": "Text"
+  },
+  "6fbb05669f60ccf0": {
+    "c": "Descubre lo que es posible.",
+    "i": 1,
+    "t": "Text"
+  },
+  "7458cc239ccaf99d": {
+    "c": "Inicio",
+    "i": 1,
+    "t": "Text"
+  },
+  "7628f5ffcaf57d9d": {
+    "c": "Componentes",
+    "i": 1,
+    "t": "Text"
+  },
+  "7f3f1617bd786b1a": {
+    "c": "Ajustes",
+    "i": 1,
+    "t": "Text"
+  },
+  "8a980f3d3f567b36": {
+    "c": "Patrones de navegación superpuesta.",
+    "i": 1,
+    "t": "Text"
+  },
+  "8d4544effe4733fe": {
+    "c": "Función 1",
+    "i": 1,
+    "t": "Text"
+  },
+  "9754112b31fa2c7f": {
+    "c": "Texto provisional para el paso final de la incorporación.",
+    "i": 1,
+    "t": "Text"
+  },
+  "9b5261b7e5f90dbc": {
+    "c": "Cuenta",
+    "i": 1,
+    "t": "Text"
+  },
+  "9e5fda5801d25503": {
+    "c": "Actividad",
+    "i": 1,
+    "t": "Text"
+  },
+  "9e6afcf8e8456686": {
+    "c": "Seleccionar idioma",
+    "i": 1,
+    "t": "Select.ListLabel"
+  },
+  "a1d4f5ca5c73b161": {
+    "c": "Términos y condiciones",
+    "i": 1,
+    "t": "Text"
+  },
+  "a52a17727385a78a": {
+    "c": "Política de privacidad de Amigo (2026)",
+    "i": 1,
+    "t": "Text"
+  },
+  "ad87a0884bfb5eb4": {
+    "c": "3. Responsabilidad de la cuenta",
+    "i": 1,
+    "t": "Text"
+  },
+  "adaffdbcfc13748e": {
+    "c": "Pronto llegarán más funciones en la próxima actualización.",
+    "i": 1,
+    "t": "Text"
+  },
+  "add106d6ef31d5e8": {
+    "c": "Términos y condiciones de Amigo (2026)",
+    "i": 1,
+    "t": "Text"
+  },
+  "b1de3a34ce6655ff": {
+    "c": "Pruébalas",
+    "i": 1,
+    "t": "Text"
+  },
+  "b56b3d4a6263c361": {
+    "c": "Acción requerida para tu hábito.",
+    "i": 1,
+    "t": "Text"
+  },
+  "b934b6710e47b1e2": {
+    "c": "2. Requisitos de elegibilidad",
+    "i": 1,
+    "t": "Text"
+  },
+  "baacef8431c41d70": {
+    "c": "1. Aceptación de los Términos",
+    "i": 1,
+    "t": "Text"
+  },
+  "c4eece75f09e349e": {
+    "c": [
+      "Nueva insignia: ",
+      {
+        "c": "Star",
+        "i": 2,
+        "t": "Text"
+      }
+    ],
+    "i": 1,
+    "t": "Text"
+  },
+  "c691312a748ee53f": {
+    "c": "Racha",
+    "i": 1,
+    "t": "Text"
+  },
+  "c7977e27294dc97c": {
+    "c": "Tu compañero minimalista para crear mejores hábitos.",
+    "i": 1,
+    "t": "Text"
+  },
+  "c83c33d7cb27be82": {
+    "c": "Activo",
+    "i": 1,
+    "t": "Text"
+  },
+  "cc65781ae7e9117b": {
+    "c": "Función 2",
+    "i": 1,
+    "t": "Text"
+  },
+  "cfcd8b4d5828e385": {
+    "c": "Disfruta del morfismo de SVG fluido y de animaciones de alto rendimiento con Reanimated.",
+    "i": 1,
+    "t": "Text"
+  },
+  "d1171fa59fbb6fb7": {
+    "c": "Te damos la bienvenida a Amigo",
+    "i": 1,
+    "t": "Text"
+  },
+  "d65127b6f09c6449": {
+    "c": "Modal estándar",
+    "i": 1,
+    "t": "Text"
+  },
+  "da1dbc33cfb552e8": {
+    "c": "Texto provisional para el tercer paso de la incorporación.",
+    "i": 1,
+    "t": "Text"
+  },
+  "de336925ca6bc8b4": {
+    "c": "2. Información que recopilamos",
+    "i": 1,
+    "t": "Text"
+  },
+  "e0b4460d13982a86": {
+    "c": "Estado",
+    "i": 1,
+    "t": "Text"
+  },
+  "e4a33b4287edcffd": {
+    "c": "Expo Starter-kit",
+    "i": 1,
+    "t": "Text"
+  },
+  "e5451e207c1a826f": {
+    "c": "Interfaz de usuario minimalista",
+    "i": 1,
+    "t": "Text"
+  },
+  "e7c824efac39183d": {
+    "c": [
+      "Tarea de ejemplo ",
+      {
+        "i": 2,
+        "k": "_gt_value_2",
+        "v": "v"
+      }
+    ],
+    "i": 1,
+    "t": "Text"
+  },
+  "f3cd38562dacfbb3": {
+    "c": "Texto provisional para el primer paso de la incorporación.",
+    "i": 1,
+    "t": "Text"
+  },
+  "f57e857412a64458": {
+    "c": "Al acceder a Amigo o usarlo, aceptas quedar sujeto a estos Términos y Condiciones. Si no estás de acuerdo, no uses la aplicación.",
+    "i": 1,
+    "t": "Text"
+  },
+  "f5d1bc7f7639aa10": {
+    "c": "Modales",
+    "i": 1,
+    "t": "Text"
+  },
+  "f6d88463a02539f4": {
+    "c": [
+      "¡Las nuevas transformaciones SVG ya están aquí!"
+    ],
+    "i": 1,
+    "t": "Text"
+  },
+  "f7d6d133b8fbcc86": {
+    "c": "Tareas de hoy",
+    "i": 1,
+    "t": "Text"
+  },
+  "f86e2c46d439122a": {
+    "c": "Ver todo",
+    "i": 1,
+    "t": "Text"
+  },
+  "fc8b25e70a1d973b": {
+    "c": [
+      "Fecha de entrada en vigor: 21 de marzo de 2026 Desarrollador: RaineTech"
+    ],
+    "i": 1,
+    "t": "Text"
+  },
+  "fe3b8a2b0fb2c724": {
+    "c": "Legal",
+    "i": 1,
+    "t": "Text"
+  }
+}

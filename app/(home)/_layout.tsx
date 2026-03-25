@@ -23,7 +23,6 @@ export default function HomeLayout() {
           presentation: "modal",
         }}
       />
-      <Stack.Screen name="(protected)" options={{ headerShown: false }} />
     </Stack>
   );
 }
