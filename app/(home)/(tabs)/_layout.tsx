@@ -16,7 +16,7 @@ export default function TabLayout() {
   const tintColor = colorScheme === 'dark' ? '#fff' : '#2696DE';
   const inactiveColor = colorScheme === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)';
 
-  if (isLoading || user === undefined) {
+  if (!isAuthenticated && (isLoading || user === undefined)) {
     return <ActivityIndicator className="flex-1" size="large" color={tintColor} />;
   }
 

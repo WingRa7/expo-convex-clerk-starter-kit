@@ -1,21 +1,42 @@
+import { useEffect } from "react";
 import AnimatedBlob from "@/components/AnimatedBlob";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
 import { View } from "@/components/ui/View";
 import { api } from "@/convex/_generated/api";
 import { useConvexAuth, useQuery } from "convex/react";
-import { Link, Redirect } from "expo-router";
+import { Link, useRouter, useRootNavigationState, usePathname } from "expo-router";
 import { T } from "gt-react-native";
 
 export default function WelcomePage() {
   const { isLoading, isAuthenticated } = useConvexAuth();
   const user = useQuery(api.users.getCurrentUser);
+  const router = useRouter();
+  const navigationState = useRootNavigationState();
+  const pathname = usePathname();
 
-  if (isAuthenticated && !isLoading && user !== undefined) {
-    if (user && !user.onboardingCompleted) {
-      return <Redirect href="/onboarding" />;
+  useEffect(() => {
+    // Only redirect if navigation is ready and we have the necessary auth/user data
+    if (navigationState?.key && !isLoading && isAuthenticated && user !== undefined) {
+      // If the current pathname is NOT '/', it means the router is already
+      // on a deep-linked path (like during a remount recovery).
+      // In this case, do NOT redirect to home.
+      if (pathname !== "/") {
+        return;
+      }
+
+      if (user && !user.onboardingCompleted) {
+        router.replace("/onboarding");
+      } else {
+        router.replace("/(home)/(tabs)/");
+      }
     }
-    return <Redirect href="/(home)/(tabs)/" />;
+  }, [navigationState?.key, isLoading, isAuthenticated, user, pathname]);
+
+  // If authenticated and data is ready, don't render the welcome UI to avoid a flicker 
+  // while the useEffect handles the navigation.
+  if (isAuthenticated && !isLoading && user !== undefined) {
+    return <View className="flex-1 bg-background" />;
   }
 
   return (

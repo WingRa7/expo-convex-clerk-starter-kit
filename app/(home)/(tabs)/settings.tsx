@@ -13,7 +13,7 @@ import * as ImagePicker from "expo-image-picker";
 import { Button } from "@/components/ui/Button";
 import { Loading } from "@/components/ui/Loading";
 import { User } from "@/components/User";
-import { T, useLocale, useSetLocale, Var } from "gt-react-native";
+import { T, useLocaleSelector, Var } from "gt-react-native";
 import { Select } from "heroui-native";
 import {
   AtSign,
@@ -57,23 +57,21 @@ const SettingsButton = React.forwardRef(({ icon: Icon, title, destructive, hideB
     </TouchableOpacity>
   );
 });
+SettingsButton.displayName = "SettingsButton";
 
 export default function SettingsScreen() {
   const { user, isLoaded } = useUser();
   const [isUpdating, setIsUpdating] = useState(false);
   const insets = useSafeAreaInsets();
-  const locale = useLocale();
-  const setLocale = useSetLocale();
+  const { locale, locales, setLocale, getLocaleProperties } = useLocaleSelector();
+  
+  const currentLanguageLabel = React.useMemo(() => {
+    if (!locale) return "";
+    const props = getLocaleProperties(locale);
+    return props?.nativeNameWithRegionCode || locale;
+  }, [locale, getLocaleProperties]);
 
-  const locales = [
-    { label: "English", value: "en" },
-    { label: "Español", value: "es" },
-    { label: "Français", value: "fr" },
-    { label: "日本語", value: "ja" },
-  ];
-
-  const currentLanguageLabel = locales.find((l) => l.value === locale)?.label || "English";
-  const currentLocaleOption = locales.find((l) => l.value === locale) || locales[0];
+  const snapPoints = React.useMemo(() => ["40%"], []);
 
   const pickImage = async () => {
     if (!isLoaded || !user) return;
@@ -196,11 +194,16 @@ export default function SettingsScreen() {
             </T>
             <View className="bg-surface rounded-[32px] overflow-hidden border border-foreground/5 mx-6">
               <Select
-                value={currentLocaleOption}
-                onValueChange={(option: any) => setLocale(option.value)}
+                value={locale}
+                onValueChange={(option: any) => {
+                  const newLocale = typeof option === "string" ? option : option?.value;
+                  if (newLocale) {
+                    setLocale(newLocale);
+                  }
+                }}
                 presentation="bottom-sheet"
               >
-                <Select.Trigger variant="unstyled">
+                <Select.Trigger asChild>
                   <SettingsButton
                     title="Language"
                     icon={Languages}
@@ -214,13 +217,20 @@ export default function SettingsScreen() {
                 </Select.Trigger>
                 <Select.Portal>
                   <Select.Overlay />
-                  <Select.Content presentation="bottom-sheet" snapPoints={["40%"]}>
+                  <Select.Content presentation="bottom-sheet" snapPoints={snapPoints}>
                     <Select.ListLabel>
                       <T>Select Language</T>
                     </Select.ListLabel>
-                    {locales.map((l) => (
-                      <Select.Item key={l.value} value={l.value} label={l.label} />
-                    ))}
+                    {locales?.map((loc) => {
+                      const props = getLocaleProperties(loc);
+                      const label = props?.nativeNameWithRegionCode || loc;
+                      return (
+                        <Select.Item key={loc} value={loc} label={label}>
+                          <Select.ItemLabel className="text-foreground">{label}</Select.ItemLabel>
+                          <Select.ItemIndicator />
+                        </Select.Item>
+                      );
+                    })}
                   </Select.Content>
                 </Select.Portal>
               </Select>

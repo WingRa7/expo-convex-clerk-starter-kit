@@ -71,14 +71,14 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
         <ClerkLoaded>
-          <GTProvider
-            config={gtConfig}
-            loadTranslations={loadTranslations}
-            projectId={process.env.EXPO_PUBLIC_GT_PROJECT_ID ?? gtConfig.projectId}
-            devApiKey={process.env.EXPO_PUBLIC_GT_DEV_API_KEY}
-          >
-            <HeroUINativeProvider>
-              <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+          <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+            <GTProvider
+              config={gtConfig}
+              loadTranslations={loadTranslations}
+              projectId={process.env.EXPO_PUBLIC_GT_PROJECT_ID ?? gtConfig.projectId}
+              devApiKey={process.env.EXPO_PUBLIC_GT_DEV_API_KEY}
+            >
+              <HeroUINativeProvider>
                 <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
                   <Stack screenOptions={{ headerShown: false }}>
                     <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -86,9 +86,9 @@ export default function RootLayout() {
                     <Stack.Screen name="(home)" options={{ headerShown: false }} />
                   </Stack>
                 </ThemeProvider>
-              </ConvexProviderWithClerk>
-            </HeroUINativeProvider>
-          </GTProvider>
+              </HeroUINativeProvider>
+            </GTProvider>
+          </ConvexProviderWithClerk>
         </ClerkLoaded>
       </ClerkProvider>
     </GestureHandlerRootView>
