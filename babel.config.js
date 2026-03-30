@@ -1,16 +1,19 @@
+const gtPlugin = require("gt-react-native/plugin");
+const gtConfig = require("./gt.config.json");
+
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: ['babel-preset-expo'],
+    presets: ["babel-preset-expo"],
     plugins: [
       [
-        'gt-react-native/plugin',
+        gtPlugin,
         {
-          locales: ['es', 'fr', 'ja'],
-          entryPointFilePath: require.resolve('expo-router/entry'),
+          locales: [gtConfig.defaultLocale, ...gtConfig.locales],
+          entryPointFilePath: require.resolve("expo-router/entry"),
         },
       ],
-      'react-native-reanimated/plugin',
+      "react-native-reanimated/plugin",
     ],
   };
 };

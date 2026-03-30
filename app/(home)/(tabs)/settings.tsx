@@ -226,7 +226,7 @@ export default function SettingsScreen() {
                       const label = props?.nativeNameWithRegionCode || loc;
                       return (
                         <Select.Item key={loc} value={loc} label={label}>
-                          <Select.ItemLabel className="text-foreground">{label}</Select.ItemLabel>
+                          <Select.ItemLabel className="text-foreground" />
                           <Select.ItemIndicator />
                         </Select.Item>
                       );

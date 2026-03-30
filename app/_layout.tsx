@@ -8,12 +8,12 @@ import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useColorScheme } from "react-native";
+import { useColorScheme, View } from "react-native";
 import { GTProvider } from "gt-react-native";
 import { HeroUINativeProvider } from "heroui-native";
 
 import gtConfig from "../gt.config.json";
-import { loadTranslations } from "../utils/loadTranslations";
+import { loadTranslations } from "../loadTranslations";
 
 import '../global.css';
 
@@ -65,32 +65,34 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  if (!loaded) return null;
+  if (!loaded || !gtConfig) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
-        <ClerkLoaded>
-          <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-            <GTProvider
-              config={gtConfig}
-              loadTranslations={loadTranslations}
-              projectId={process.env.EXPO_PUBLIC_GT_PROJECT_ID ?? gtConfig.projectId}
-              devApiKey={process.env.EXPO_PUBLIC_GT_DEV_API_KEY}
-            >
+      <GTProvider
+        config={gtConfig}
+        loadTranslations={loadTranslations}
+        projectId={process.env.EXPO_PUBLIC_GT_PROJECT_ID ?? gtConfig.projectId}
+        devApiKey={process.env.EXPO_PUBLIC_GT_DEV_API_KEY}
+      >
+        <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
+          <ClerkLoaded>
+            <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
               <HeroUINativeProvider>
                 <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="index" options={{ headerShown: false }} />
-                    <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                    <Stack.Screen name="(home)" options={{ headerShown: false }} />
-                  </Stack>
+                  <View className="flex-1 bg-background">
+                    <Stack screenOptions={{ headerShown: false }}>
+                      <Stack.Screen name="index" options={{ headerShown: false }} />
+                      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                      <Stack.Screen name="(home)" options={{ headerShown: false }} />
+                    </Stack>
+                  </View>
                 </ThemeProvider>
               </HeroUINativeProvider>
-            </GTProvider>
-          </ConvexProviderWithClerk>
-        </ClerkLoaded>
-      </ClerkProvider>
+            </ConvexProviderWithClerk>
+          </ClerkLoaded>
+        </ClerkProvider>
+      </GTProvider>
     </GestureHandlerRootView>
   );
 }

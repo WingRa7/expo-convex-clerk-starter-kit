@@ -25,7 +25,7 @@ const paths = [
     "M400.5,296Q303,342,228,380Q153,418,134.5,334Q116,250,143.5,181.5Q171,113,247,118Q323,123,410.5,186.5Q498,250,400.5,296Z"
   ),
 ];
-const colors = ["#E0F2FE", "#F0FDFA", "#F5F3FF"]; // Softer colors for a minimal look
+const colors = ["#38BDF8", "#2DD4BF", "#818CF8"]; // More vibrant colors for better visibility
 const numPaths = paths.length;
 
 export default function AnimatedBlob({ size = 300, autoPlay = true }: { size?: number, autoPlay?: boolean }) {

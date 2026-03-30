@@ -5,36 +5,39 @@ import { Text } from "@/components/ui/Text";
 import { View } from "@/components/ui/View";
 import { api } from "@/convex/_generated/api";
 import { useConvexAuth, useQuery } from "convex/react";
-import { Link, useRouter, useRootNavigationState, usePathname } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { T } from "gt-react-native";
+
+// Module-level variable to track if we've already performed the initial redirect.
+// This survives GTProvider unmounts/remounts within the same app session.
+let initialRedirectDone = false;
 
 export default function WelcomePage() {
   const { isLoading, isAuthenticated } = useConvexAuth();
   const user = useQuery(api.users.getCurrentUser);
   const router = useRouter();
-  const navigationState = useRootNavigationState();
-  const pathname = usePathname();
 
   useEffect(() => {
-    // Only redirect if navigation is ready and we have the necessary auth/user data
-    if (navigationState?.key && !isLoading && isAuthenticated && user !== undefined) {
-      // If the current pathname is NOT '/', it means the router is already
-      // on a deep-linked path (like during a remount recovery).
-      // In this case, do NOT redirect to home.
-      if (pathname !== "/") {
-        return;
-      }
-
+    // If authenticated and we haven't done our one-time redirect yet, do it now.
+    if (isAuthenticated && !isLoading && user !== undefined && !initialRedirectDone) {
+      initialRedirectDone = true;
       if (user && !user.onboardingCompleted) {
         router.replace("/onboarding");
       } else {
         router.replace("/(home)/(tabs)/");
       }
     }
-  }, [navigationState?.key, isLoading, isAuthenticated, user, pathname]);
+  }, [isAuthenticated, isLoading, user, router]);
 
-  // If authenticated and data is ready, don't render the welcome UI to avoid a flicker 
-  // while the useEffect handles the navigation.
+  // Reset the flag if the user signs out, so it can fire again on next sign-in.
+  useEffect(() => {
+    if (!isAuthenticated) {
+      initialRedirectDone = false;
+    }
+  }, [isAuthenticated]);
+
+  // If authenticated, we show a themed background View while the router handles 
+  // the initial redirect or the deep-link recovery.
   if (isAuthenticated && !isLoading && user !== undefined) {
     return <View className="flex-1 bg-background" />;
   }
